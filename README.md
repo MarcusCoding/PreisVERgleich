@@ -1,6 +1,6 @@
 # PreisVERgleich
 
-Tool zum Vergleichen der Preise der HardwareRat GmbH und verschiednenen Preisportalen wie z.B. Geizhals.
+Tool zum Vergleichen der Preise der HardwareRat GmbH und verschiedenen Preisportalen wie z.B. Geizhals.
 
 Es wird eine Differenz zwischen den beiden Preisen gebildet und dann visuell dargestellt.
 
