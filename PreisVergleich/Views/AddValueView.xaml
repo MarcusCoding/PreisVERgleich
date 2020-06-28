@@ -1,0 +1,27 @@
+﻿<Window x:Class="PreisVergleich.Views.AddValueView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PreisVergleich.Views"
+        mc:Ignorable="d"
+        Title="Satz hinzufuegen" Height="250" Width="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="25" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+            <Label Content="URL HardwareRat"/>
+            <TextBox Text="{Binding urlHWRat}" />
+
+            <Label Content="URL Vergleich"/>
+            <TextBox Text="{Binding urlCompareSite}" />
+        </StackPanel>
+
+        <Button Grid.Row="1" Content="Absenden" Command="{Binding buttonFinished}" />
+        <Button Grid.Row="2" Content="Abbruch" Command="{Binding buttonCancel}" />
+    </Grid>
+</Window>
