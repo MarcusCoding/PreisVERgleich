@@ -155,6 +155,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="Resources\additem.png" />
     <Resource Include="Resources\mainimg.png" />
     <Resource Include="Resources\hw_logo.png" />
     <Resource Include="Resources\geizhals.png" />
