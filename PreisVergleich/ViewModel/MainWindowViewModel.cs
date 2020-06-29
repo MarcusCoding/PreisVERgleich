@@ -7,13 +7,17 @@ using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using static PreisVergleich.Helpers.Logger;
 
 namespace PreisVergleich.ViewModel
 {
+    [PropertyChanged.AddINotifyPropertyChangedInterface]
     public class MainWindowViewModel
     {
         Logger log;
@@ -23,14 +27,18 @@ namespace PreisVergleich.ViewModel
 
         public ObservableCollection<ProduktModell> produktItems { get; set; }
 
+        public Dispatcher MainDispatcher { get; set; }
+
         public ProduktModell selectedItem { get; set; }
+
+        public string statusValue { get; set; }
 
         //Konstruktor
         public MainWindowViewModel()
         {
             //Logger init
             log = new Logger();
-
+            MainDispatcher = Dispatcher.CurrentDispatcher;
             //SQL Helper initialisieren
             string connectionString = Properties.Settings.Default.DatebaseLocation.Replace("{PROJECT}", AppDomain.CurrentDomain.BaseDirectory); 
 
@@ -39,30 +47,40 @@ namespace PreisVergleich.ViewModel
             if (sQLiteHelper != null)
             {
                  produktItems = new ObservableCollection<ProduktModell>();
-                LoadGridItems();
+                LoadGridItems(false);
                 log.writeLog(LogType.INFO, "Programmstart");
+                statusValue = "Start erfolgreich!";
             }
         }
 
-        public async void LoadGridItems()
+        public async void LoadGridItems(bool loadSiteData)
         {
             try
             {
-                //Sqls laden
-                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName FROM PRODUKTE";
+                List<ProduktModell> tmpProduktItems = new List<ProduktModell>();
 
-                //Sensoren laden
-                produktItems.Clear();
+                //Sqls laden
+                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL FROM PRODUKTE";
+
                 List<ProduktModell> retValProducts = sQLiteHelper.getGridData(sSQL);
                 if (retValProducts != null)
                 {
+                    int countFor = 1;
                     foreach(ProduktModell row in retValProducts)
                     {
-                        //Daten abrufen
-                        ProduktModell retVal = getHTMLData(row);
-                        row.comparePrice = retVal.comparePrice;
-                        row.hardwareRatPrice = retVal.hardwareRatPrice;
-                        row.articleName = retVal.articleName;
+                        await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            statusValue = $"Lade Artikel {countFor} von {retValProducts.Count}";
+                        }));
+
+                        if (loadSiteData)
+                        {
+                            //Daten abrufen
+                            ProduktModell retVal = getHTMLData(row);
+                            row.comparePrice = retVal.comparePrice;
+                            row.hardwareRatPrice = retVal.hardwareRatPrice;
+                            row.articleName = retVal.articleName;
+                        }
 
                         //Status abrufen
                         double difference = Math.Round(row.hardwareRatPrice - row.comparePrice, 2);
@@ -82,14 +100,21 @@ namespace PreisVergleich.ViewModel
 
                         sQLiteHelper.UpdateItem(row);
 
-                        produktItems.Add(row);
+                        tmpProduktItems.Add(row);
+                        countFor++;
                     }
+
+                    await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        statusValue = "Übersicht erfolgreich aktualisiert!";
+                        produktItems = new ObservableCollection<ProduktModell>(tmpProduktItems);
+                    }));
                 }
                 else
                 {
                     return;
                 }
-                return ;
+                return;
             }
             catch (Exception ex)
             {
@@ -98,25 +123,25 @@ namespace PreisVergleich.ViewModel
             }
         }
 
-
         public ProduktModell getHTMLData(ProduktModell item)
         {
             string retValPrice = "0";
             string retValName = "Nicht gefunden!";
+            string retValPicture = "https://hardwarerat.de/media/image/85/fa/30/logo-klein.png";
+
             try
             {
                 HtmlWeb webPage = new HtmlWeb();
-              //  var hardwareRatHTML = httpClient.GetStringAsync(item.hardwareRatURL).Result;
-               // var compareSiteHTML = httpClient.GetStringAsync(item.compareURL).Result;
-
                 HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
                 document = webPage.Load(item.hardwareRatURL);
 
                 retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='price--content content--default']/meta").Attributes["content"].Value.Replace(".", ",");
                 retValName = document.DocumentNode.SelectSingleNode("//h1[@class='product--title']").InnerText.Replace("\n", "");
+                retValPicture = document.DocumentNode.SelectSingleNode("//span[@class='image--media']/img").Attributes["src"].Value;
 
                 item.hardwareRatPrice = Math.Round(double.Parse(retValPrice), 2);
                 item.articleName = retValName;
+                item.articlePicture = retValPicture;
 
                 //Geizhals
                 document = new HtmlAgilityPack.HtmlDocument();
@@ -170,7 +195,7 @@ namespace PreisVergleich.ViewModel
 
         private void UpdateGridCommand(object context)
         {
-            LoadGridItems();
+            Task.Run(() => LoadGridItems(true));
         }
 
         public ICommand DeleteItem
@@ -185,8 +210,37 @@ namespace PreisVergleich.ViewModel
                 return;
             }
             sQLiteHelper.DeleteItem(selectedItem);
-            LoadGridItems();
+            LoadGridItems(false);
         }
+
+        public ICommand OpenHWLink
+        {
+            get { return new DelegateCommand<object>(OpenHWLinkCommand); }
+        }
+
+        private void OpenHWLinkCommand(object context)
+        {
+            if (selectedItem == null)
+            {
+                return;
+            }
+            Process.Start(selectedItem.hardwareRatURL);
+        }
+
+        public ICommand OpenCompareLink
+        {
+            get { return new DelegateCommand<object>(OpenCompareLinkCommand); }
+        }
+
+        private void OpenCompareLinkCommand(object context)
+        {
+            if (selectedItem == null)
+            {
+                return;
+            }
+            Process.Start(selectedItem.compareURL);
+        }
+
 
         #endregion
     }

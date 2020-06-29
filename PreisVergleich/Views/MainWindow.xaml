@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PreisVergleich"
         mc:Ignorable="d"
-       xmlns:converter="clr-namespace:PreisVergleich.Converter"
+        xmlns:converter="clr-namespace:PreisVergleich.Converter"
         Title="PreisVERgleich" Height="650" Width="800">
     
     <Window.Resources>
@@ -34,16 +34,20 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
-        <DataGrid Grid.Row="0" HorizontalAlignment="Stretch" ItemsSource="{Binding produktItems}" SelectedItem="{Binding selectedItem}" AutoGenerateColumns="False" IsReadOnly="True" Grid.ColumnSpan="2">
+        <DataGrid Grid.Row="0" MinRowHeight="32" HorizontalAlignment="Stretch" ItemsSource="{Binding produktItems}" SelectedItem="{Binding selectedItem}" AutoGenerateColumns="False" IsReadOnly="True" Grid.ColumnSpan="2">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Produktname HardwareRat" Binding="{Binding articleName}"  />
-                <DataGridTextColumn Header="URL HardwareRat" Binding="{Binding hardwareRatURL}" />
-                <DataGridTextColumn Header="URL Preisvergleich" Binding="{Binding compareURL}" />
+                <DataGridTemplateColumn Header="Produktbild">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding articlePicture}" Width="24" Height="24" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="Preis HardwareRat" Binding="{Binding hardwareRatPrice, Converter={StaticResource currencyConverter}}"/>
                 <DataGridTextColumn Header="Preis Preisvergleich" Binding="{Binding comparePrice, Converter={StaticResource currencyConverter}}" />
                 <DataGridTextColumn Header="Statuswert" Binding="{Binding State}">
@@ -59,12 +63,52 @@
                 </DataGridTextColumn>
                 <DataGridTextColumn Header="Differenz" Binding="{Binding priceDifference, Converter={StaticResource currencyConverter}}" />
                 <DataGridTextColumn Header="Vergleichsseite" Binding="{Binding compareSiteType}" />
+                <DataGridTextColumn Header="URL HardwareRat" Binding="{Binding hardwareRatURL}" />
+                <DataGridTextColumn Header="URL Preisvergleich" Binding="{Binding compareURL}" />
+
             </DataGrid.Columns>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="HardwareRat URL aufrufen" Command="{Binding OpenHWLink}"  >
+                        <MenuItem.Icon>
+                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/hw_logo.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Geizhals URL aufrufen" Command="{Binding OpenCompareLink}" >
+                        <MenuItem.Icon>
+                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/geizhals.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Bearbeiten" Command="{Binding UpdateValue}" >
+                        <MenuItem.Icon>
+                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/edit.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Loeschen" Command="{Binding DeleteItem}" >
+                        <MenuItem.Icon>
+                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
-        <Button Grid.Row="1" Content="Hinzufuegen" Command="{Binding AddValue}" />
-        <Button Grid.Row="2" Content="Aktualisieren" Command="{Binding UpdateGrid}" />
-        <Button Grid.Row="3" Content="Aendern" Command="{Binding UpdateValue}" />
-        <Button Grid.Row="4" Content="Loeschen" Command="{Binding DeleteItem}" />
+        <Button Grid.Row="1" Command="{Binding AddValue}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/add.png"/>
+                <Label Padding="4">Hinzufuegen</Label>
+            </StackPanel>
+        </Button>
+        <Button Grid.Row="2" Command="{Binding UpdateGrid}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload.png"/>
+                <Label Padding="4">Aktualisieren</Label>
+            </StackPanel>
+        </Button>
+        <StatusBar Grid.Row="5">
+            <StatusBarItem>
+                <TextBlock Text="{Binding statusValue, Mode=TwoWay}" />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 
 </Window>

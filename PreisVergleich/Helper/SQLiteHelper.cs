@@ -32,7 +32,7 @@ namespace PreisVergleich.Helper
                     connection.Open();
 
                     string sql = "create table PRODUKTE (produktID INTEGER PRIMARY KEY NOT " +
-                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), articleName varchar(300))";
+                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), articleName varchar(300), articleURL varchar(300))";
 
                     SQLiteCommand command = new SQLiteCommand(sql, connection);
                     command.ExecuteNonQuery();
@@ -79,6 +79,7 @@ namespace PreisVergleich.Helper
                                     compareSiteType = reader[6].ToString(),
                                     produktID = int.Parse(reader[7].ToString()),
                                     articleName = reader[8].ToString(),
+                                    articlePicture = reader[9].ToString(),
                                 };
                                 retVal.Add(dataRow);
                             }
@@ -126,7 +127,7 @@ namespace PreisVergleich.Helper
 
         public void UpdateItem(ProduktModell item)
         {
-            string sql = $"UPDATE PRODUKTE set hardwareRatURL = '{item.hardwareRatURL}', compareSiteURL = '{item.compareURL}', hardwareRatPrice = '{item.hardwareRatPrice}', compareSitePrice = '{item.comparePrice}', state = '{item.State}', differencePrice = '{item.priceDifference}' where produktID = '{item.produktID}'";
+            string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = '{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', compareSiteURL = '{item.compareURL}', hardwareRatPrice = '{item.hardwareRatPrice}', compareSitePrice = '{item.comparePrice}', state = '{item.State}', differencePrice = '{item.priceDifference}' where produktID = '{item.produktID}'";
             if (connection.State == ConnectionState.Open)
             {
                 try

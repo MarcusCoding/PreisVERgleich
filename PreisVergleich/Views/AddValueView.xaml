@@ -4,24 +4,104 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PreisVergleich.Views"
+        xmlns:converter="clr-namespace:PreisVergleich.Converter"
         mc:Ignorable="d"
-        Title="Satz hinzufuegen" Height="250" Width="600">
+        Title="Satz hinzufuegen" Height="600" Width="600">
+    <Window.Resources>
+        <converter:NumberToCurrencyConverter x:Key="currencyConverter"/>
+        <converter:ColorConverter x:Key="colorConverter"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="25" />
             <RowDefinition Height="25" />
             <RowDefinition Height="25" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Vertical">
             <Label Content="URL HardwareRat"/>
-            <TextBox Text="{Binding urlHWRat}" />
+            <TextBox Margin="5" Text="{Binding urlHWRat}" />
 
             <Label Content="URL Vergleich"/>
-            <TextBox Text="{Binding urlCompareSite}" />
+            <TextBox  Margin="5" Text="{Binding urlCompareSite}" />
         </StackPanel>
 
-        <Button Grid.Row="1" Content="Absenden" Command="{Binding buttonFinished}" />
-        <Button Grid.Row="2" Content="Abbruch" Command="{Binding buttonCancel}" />
+        <StackPanel Grid.Row="1"  Orientation="Vertical">
+            <GroupBox Header="Produktdaten">
+                <Grid >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0" Width="100" Height="100" Source="{Binding hwProductPicture, Mode=TwoWay}"/>
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" Content="Produktname"/>
+                        <TextBox Grid.Row="1" IsReadOnly="True" Text="{Binding hwProductName, Mode=TwoWay}" />
+                        <Label Grid.Row="2" Content="Produktpreis"/>
+                        <TextBox Grid.Row="3" IsReadOnly="True" Text="{Binding hwProductPrice, Mode=TwoWay, Converter={StaticResource currencyConverter}}" />
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+        
+        <StackPanel Grid.Row="2"  Orientation="Vertical">
+            <GroupBox Header="Vergleichsdaten">
+                <Grid >
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" Content="Geizhals Preis"/>
+                        <TextBox Grid.Row="1" IsReadOnly="True" Text="{Binding ghzProductPrice, Mode=TwoWay, Converter={StaticResource currencyConverter}}" />
+                        <Label Grid.Row="2" Content="Differenz"/>
+                        <TextBox Grid.Row="3" IsReadOnly="True" Text="{Binding productDifference, Mode=TwoWay, Converter={StaticResource currencyConverter}}" />                       
+                        <Label Grid.Row="4" Content="Statuswert"/>
+                        <TextBox Grid.Row="5" IsReadOnly="True" Background="{Binding currentState, Mode=TwoWay, Converter={StaticResource colorConverter}}" Text="{Binding currentState, Mode=TwoWay}" >
+                            
+                        </TextBox>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+
+        <Button Grid.Row="3" Command="{Binding buttonLoadData}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/lupe.png"/>
+                <Label Padding="4">Daten abrufen</Label>
+            </StackPanel>
+        </Button>
+        <Button Grid.Row="4" Command="{Binding buttonLoadGeizhals}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/geizhals.png"/>
+                <Label Padding="4">Geizhalsbezug abrufen</Label>
+            </StackPanel>
+        </Button>
+        <Button Grid.Row="5" Command="{Binding buttonFinished}">
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/done.png"/>
+                <Label Padding="4">Absenden</Label>
+            </StackPanel>            
+        </Button>
+        <Button Grid.Row="6" Command="{Binding buttonCancel}">
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png"/>
+                <Label Padding="4">Abbruch</Label>
+            </StackPanel>
+        </Button>
     </Grid>
 </Window>

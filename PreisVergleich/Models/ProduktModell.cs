@@ -6,6 +6,8 @@
 
         public string articleName { get; set; }
 
+        public string articlePicture { get; set; }
+
         public string hardwareRatURL { get; set; }
 
         public string compareURL { get; set; }
@@ -19,8 +21,6 @@
         public double priceDifference { get; set; }
 
         public string compareSiteType { get; set; }
-
-
     }
 
     public enum OperationMode
