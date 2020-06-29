@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -46,7 +45,7 @@ namespace PreisVergleich.ViewModel
 
             if (sQLiteHelper != null)
             {
-                 produktItems = new ObservableCollection<ProduktModell>();
+                produktItems = new ObservableCollection<ProduktModell>();
                 LoadGridItems(false);
                 log.writeLog(LogType.INFO, "Programmstart");
                 statusValue = "Start erfolgreich!";
@@ -170,7 +169,14 @@ namespace PreisVergleich.ViewModel
         private void AddValueCommand(object context)
         {
             AddValueView addValue = new AddValueView(OperationMode.CREATE, null);
-            addValue.ShowDialog();
+            bool? result = addValue.ShowDialog();
+            if(result != null)
+            {
+                if(result == true)
+                {
+                    Task.Run(() => LoadGridItems(true));
+                }
+            }
         }
 
         public ICommand UpdateValue

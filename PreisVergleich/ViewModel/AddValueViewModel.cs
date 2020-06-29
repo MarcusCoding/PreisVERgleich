@@ -90,7 +90,7 @@ namespace PreisVergleich.ViewModel
                 sqlHelper.UpdateItem(orginalItem);
             }
 
-            View.CloseWindow();
+            View.CloseWindow(true);
         }
 
         public ICommand buttonCancel
@@ -100,7 +100,7 @@ namespace PreisVergleich.ViewModel
 
         public void buttonCancelCommand(object action)
         {
-            View.CloseWindow();
+            View.CloseWindow(false);
         }
 
         public ICommand buttonLoadData

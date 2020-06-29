@@ -91,13 +91,13 @@
                 <Label Padding="4">Geizhalsbezug abrufen</Label>
             </StackPanel>
         </Button>
-        <Button Grid.Row="5" Command="{Binding buttonFinished}">
+        <Button Grid.Row="5" Command="{Binding buttonFinished}" IsDefault="True">
             <StackPanel Orientation="Horizontal">
                 <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/done.png"/>
                 <Label Padding="4">Absenden</Label>
             </StackPanel>            
         </Button>
-        <Button Grid.Row="6" Command="{Binding buttonCancel}">
+        <Button Grid.Row="6" Command="{Binding buttonCancel}" IsCancel="True">
             <StackPanel Orientation="Horizontal">
                 <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png"/>
                 <Label Padding="4">Abbruch</Label>

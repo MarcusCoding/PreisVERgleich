@@ -19,8 +19,9 @@ namespace PreisVergleich.Views
             (DataContext as AddValueViewModel).View = this as ICloseWindow;
         }
 
-        public void CloseWindow()
+        public void CloseWindow(bool dialogResult)
         {
+            this.DialogResult = dialogResult;
             this.Close();
         }
 
@@ -28,6 +29,6 @@ namespace PreisVergleich.Views
 
     public interface ICloseWindow
     {
-        void CloseWindow();
+        void CloseWindow(bool dialogResult);
     }
 }
