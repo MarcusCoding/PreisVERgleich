@@ -100,9 +100,9 @@ namespace PreisVergleich.Helper
             }
         }
 
-        public void InsertItem(string urlHWRat, string urlCompareSite)
+        public void InsertItem(ProduktModell item)
         {
-            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType) VALUES ('{urlHWRat}', '{urlCompareSite}', '0', '0', 'keiner', '0', 'Geizhals')";
+            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName, articleURL) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', '{item.hardwareRatPrice}', '{item.comparePrice}', '{item.State}', '{item.priceDifference}', '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}')";
             if (connection.State == ConnectionState.Open)
             {
                 try
@@ -166,6 +166,31 @@ namespace PreisVergleich.Helper
                 catch (Exception ex)
                 {
                     log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + "Fehler beim Ausführen des Delete-SQls", ex);
+                    log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + sql);
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+        
+        public void DeleteDB()
+        {
+            string sql = $"DELETE FROM PRODUKTE";
+            if (connection.State == ConnectionState.Open)
+            {
+                try
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + "Fehler beim Ausführen des Delete-DB-SQls", ex);
                     log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + sql);
                     return;
                 }

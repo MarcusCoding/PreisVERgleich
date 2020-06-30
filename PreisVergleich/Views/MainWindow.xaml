@@ -37,6 +37,9 @@
             <RowDefinition Height="25"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="25"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
         <DataGrid Grid.Row="0" MinRowHeight="32" HorizontalAlignment="Stretch" ItemsSource="{Binding produktItems}" SelectedItem="{Binding selectedItem}" AutoGenerateColumns="False" IsReadOnly="True" Grid.ColumnSpan="2">
             <DataGrid.Columns>
@@ -104,13 +107,25 @@
                 <Label Padding="4">Aktualisieren (ohne HTMLAbruf)</Label>
             </StackPanel>
         </Button>
-        <Button Grid.Row="2" Command="{Binding UpdateGrid}" >
+        <Button Grid.Row="3" Command="{Binding UpdateGrid}" >
             <StackPanel Orientation="Horizontal">
                 <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload.png"/>
                 <Label Padding="4">Aktualisieren</Label>
             </StackPanel>
         </Button>
-        <StatusBar Grid.Row="5">
+        <Button Grid.Row="4" Command="{Binding ImportXML}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="2" Width="16" Height="16" Source="/PreisVergleich;component/Resources/import.png"/>
+                <Label Padding="4">Import XML</Label>
+            </StackPanel>
+        </Button>
+        <Button Grid.Row="5" Command="{Binding DeleteDB}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Margin="2" Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png"/>
+                <Label Padding="4">Datenbank leeren</Label>
+            </StackPanel>
+        </Button>
+        <StatusBar Grid.Row="6">
             <StatusBarItem>
                 <TextBlock Text="{Binding statusValue, Mode=TwoWay}" />
             </StatusBarItem>

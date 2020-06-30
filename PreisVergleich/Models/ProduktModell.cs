@@ -4,6 +4,8 @@
     {
         public int produktID { get; set; }
 
+        public int hardwareRatID { get; set; }
+
         public string articleName { get; set; }
 
         public string articlePicture { get; set; }

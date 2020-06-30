@@ -166,6 +166,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="Resources\import.png" />
     <Resource Include="Resources\reload_offline.png" />
     <Resource Include="Resources\additem.png" />
     <Resource Include="Resources\mainimg.png" />

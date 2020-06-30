@@ -8,11 +8,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Xml;
 using static PreisVergleich.Helpers.Logger;
 
 namespace PreisVergleich.ViewModel
@@ -40,7 +44,7 @@ namespace PreisVergleich.ViewModel
             log = new Logger();
             MainDispatcher = Dispatcher.CurrentDispatcher;
             //SQL Helper initialisieren
-            string connectionString = Properties.Settings.Default.DatebaseLocation.Replace("{PROJECT}", AppDomain.CurrentDomain.BaseDirectory); 
+            string connectionString = Properties.Settings.Default.DatebaseLocation.Replace("{PROJECT}", AppDomain.CurrentDomain.BaseDirectory);
 
             sQLiteHelper = new SQLiteHelper(connectionString);
 
@@ -58,6 +62,7 @@ namespace PreisVergleich.ViewModel
             try
             {
                 List<ProduktModell> tmpProduktItems = new List<ProduktModell>();
+                bool waitTask = false;
 
                 //Sqls laden
                 string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL FROM PRODUKTE";
@@ -66,7 +71,18 @@ namespace PreisVergleich.ViewModel
                 if (retValProducts != null)
                 {
                     int countFor = 1;
-                    foreach(ProduktModell row in retValProducts)
+
+                    if (loadSiteData)
+                    {
+                       
+                        DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie mit Zeitversatz arbeiten, um Geizhals Ban zu umgehen?", "Hinweis!", MessageBoxButtons.YesNo);
+                        if (dialogResult == DialogResult.Yes)
+                        {
+                            waitTask = true;
+                        }
+                    }
+                   
+                    foreach (ProduktModell row in retValProducts)
                     {
                         await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                         {
@@ -80,16 +96,21 @@ namespace PreisVergleich.ViewModel
                             row.comparePrice = retVal.comparePrice;
                             row.hardwareRatPrice = retVal.hardwareRatPrice;
                             row.articleName = retVal.articleName;
+
+                            if (waitTask)
+                            {
+                                System.Threading.Thread.Sleep(4000);
+                            }
                         }
 
                         //Status abrufen
                         double difference = Math.Round(row.hardwareRatPrice - row.comparePrice, 2);
                         row.priceDifference = difference;
-                        if(difference <= 0)
+                        if (difference <= 0)
                         {
                             row.State = "günstiger";
                         }
-                        else if(difference > 0 && difference < 3)
+                        else if (difference > 0 && difference < 3)
                         {
                             row.State = "1-2€ darüber";
                         }
@@ -112,6 +133,7 @@ namespace PreisVergleich.ViewModel
                 }
                 else
                 {
+                    produktItems = new ObservableCollection<ProduktModell>();
                     return;
                 }
                 return;
@@ -184,9 +206,9 @@ namespace PreisVergleich.ViewModel
         {
             AddValueView addValue = new AddValueView(OperationMode.CREATE, null);
             bool? result = addValue.ShowDialog();
-            if(result != null)
+            if (result != null)
             {
-                if(result == true)
+                if (result == true)
                 {
                     DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie alle Artikeldaten neuladen?", "Hinweis!", MessageBoxButtons.YesNo);
                     if (dialogResult == DialogResult.Yes)
@@ -243,11 +265,22 @@ namespace PreisVergleich.ViewModel
 
         private void DeleteItemCommand(object context)
         {
-            if(selectedItem == null)
+            if (selectedItem == null)
             {
                 return;
             }
             sQLiteHelper.DeleteItem(selectedItem);
+            LoadGridItems(false);
+        }
+
+        public ICommand DeleteDB
+        {
+            get { return new DelegateCommand<object>(DeleteDBCommand); }
+        }
+
+        private void DeleteDBCommand(object context)
+        {
+            sQLiteHelper.DeleteDB();
             LoadGridItems(false);
         }
 
@@ -277,6 +310,155 @@ namespace PreisVergleich.ViewModel
                 return;
             }
             Process.Start(selectedItem.compareURL);
+        }
+
+        public ICommand ImportXML
+        {
+            get { return new DelegateCommand<object>(ImportXMLCommand); }
+        }
+
+        private  void ImportXMLCommand(object context)
+        {
+            try
+            {
+                bool useGeizhals = false;
+
+                DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie den Geizhalsbezug mitladen? (Dies nimmt einige Zeit mehr in Anspruch)", "Hinweis!", MessageBoxButtons.YesNo);
+                if (dialogResult == DialogResult.Yes)
+                {
+                    useGeizhals = true;
+                }
+
+                string xmlStr;
+                using (var wc = new WebClient())
+                {
+                    xmlStr = wc.DownloadString("https://hardwarerat.de/backend/export/index/PVExport?feedID=18&hash=60e9cd3ac2423a1301ccc8e140d04942");
+                }
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlStr);
+
+                 Task.Run(() => LoadXMLintoSQLite(xmlDoc, useGeizhals));
+
+              
+            }
+            catch (Exception ex)
+            {
+                log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + $": Fehler beim Laden vom XML", ex);
+            }
+        }
+
+        public async void LoadXMLintoSQLite(XmlDocument xmlDoc, bool loadGeizhals)
+        {
+            try
+            {
+                List<ProduktModell> listXML = new List<ProduktModell>();
+
+                //XML auswerten und antragen
+                XmlNodeList artikelDaten = xmlDoc.SelectNodes(".//item");
+
+                int maxCount = artikelDaten.Count - 1;
+
+                for (int i = 0; i < artikelDaten.Count; i++)
+                {
+                    ProduktModell model = new ProduktModell()
+                    {
+                        hardwareRatURL = artikelDaten[i].ChildNodes[5].InnerText,
+                        hardwareRatPrice = double.Parse(artikelDaten[i].ChildNodes[9].InnerText),
+                        articlePicture = artikelDaten[i].ChildNodes[6].InnerText,
+                        articleName = artikelDaten[i].ChildNodes[1].InnerText,
+                        hardwareRatID = int.Parse(artikelDaten[i].ChildNodes[0].InnerText),
+                    };
+
+                    listXML.Add(model);
+
+                    await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        statusValue = $"Lade XML Artikel {i} von {maxCount}";
+                    }));
+                }
+
+                int articleAdded = 0;
+                int articleMax = 0;
+                //In Datenbank packen
+                if (listXML.Count > 0)
+                {
+                    articleMax = listXML.Count;
+                    HtmlAgilityPack.HtmlDocument document = null;
+                    HtmlWeb webPage = null;
+
+                    if (loadGeizhals)
+                    {
+                        webPage = new HtmlWeb();
+                        document = new HtmlAgilityPack.HtmlDocument();
+                    }
+
+                    foreach (ProduktModell row in listXML)
+                    {
+                        //Geizhalsbezug aufrufen
+                        if (loadGeizhals)
+                        {
+                            try
+                            {
+                                document = new HtmlAgilityPack.HtmlDocument();
+
+                                //Name parsen, damit er akzeptiert wird
+                                string searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C");
+
+                                document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
+
+                                //GeizhalsURL öffnen
+                                row.compareURL = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+
+                                document = webPage.Load(row.compareURL);
+
+                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                                double difference = Math.Round(row.hardwareRatPrice - row.comparePrice, 2);
+                                row.priceDifference = difference;
+                                if (difference <= 0)
+                                {
+                                    row.State = "günstiger";
+                                }
+                                else if (difference > 0 && difference < 3)
+                                {
+                                    row.State = "1-2€ darüber";
+                                }
+                                else if (difference > 2)
+                                {
+                                    row.State = "3€ oder mehr darüber";
+                                }
+
+                                //4 Sekunden warten GitHub Ban zu umgehen
+                                System.Threading.Thread.Sleep(4000);
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
+
+                        await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                        {
+                            statusValue = $"Übernehme Artikel {articleAdded} von {articleMax}";
+                        }));
+
+                        sQLiteHelper.InsertItem(row);
+                        articleAdded++;
+
+                    }
+                }
+                await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    statusValue = $"{articleAdded} / {maxCount} Artikel übernommen";
+                }));
+                LoadGridItems(false);
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
         }
 
         #endregion

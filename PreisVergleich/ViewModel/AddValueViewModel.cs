@@ -81,7 +81,40 @@ namespace PreisVergleich.ViewModel
 
             if(operationMode == OperationMode.CREATE)
             {
-                sqlHelper.InsertItem(urlHWRat, urlCompareSite);
+                ProduktModell newsatz = new ProduktModell()
+                {
+                    hardwareRatURL = urlHWRat,
+                    compareURL = urlCompareSite,
+                    hardwareRatPrice = 0,
+                    comparePrice = 0,
+                    priceDifference = 0,
+                    State = "unbekannt",
+                    compareSiteType = "Geizhals"
+                };
+
+                //Werte ersetzen, falls Daten laden genutzt wurde
+                if (!string.IsNullOrEmpty(hwProductPicture))
+                {
+                    newsatz.articlePicture = hwProductPicture;
+                }
+                if (!string.IsNullOrEmpty(ghzProductPrice))
+                {
+                    newsatz.comparePrice = double.Parse(ghzProductPrice);
+                }
+                if (!string.IsNullOrEmpty(hwProductPrice))
+                {
+                    newsatz.hardwareRatPrice = double.Parse(hwProductPrice);
+                }
+                if (!string.IsNullOrEmpty(currentState))
+                {
+                    newsatz.State = currentState;
+                }
+                if (!string.IsNullOrEmpty(productDifference))
+                {
+                    newsatz.priceDifference = double.Parse(productDifference);
+                }
+
+                sqlHelper.InsertItem(newsatz);
             }
             else if (operationMode == OperationMode.UPDATE)
             {
