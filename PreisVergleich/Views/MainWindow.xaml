@@ -98,6 +98,12 @@
                 <Label Padding="4">Hinzufuegen</Label>
             </StackPanel>
         </Button>
+        <Button Grid.Row="2" Command="{Binding UpdateGridOnly}" >
+            <StackPanel Orientation="Horizontal">
+                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload_offline.png"/>
+                <Label Padding="4">Aktualisieren (ohne HTMLAbruf)</Label>
+            </StackPanel>
+        </Button>
         <Button Grid.Row="2" Command="{Binding UpdateGrid}" >
             <StackPanel Orientation="Horizontal">
                 <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload.png"/>

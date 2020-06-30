@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
 using static PreisVergleich.Helpers.Logger;
@@ -134,6 +135,19 @@ namespace PreisVergleich.ViewModel
                 HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
                 document = webPage.Load(item.hardwareRatURL);
 
+                //Abfangen wenn es den Artikel nicht mehr gibt / deaktivert
+                try
+                {
+                    string errorString = document.DocumentNode.SelectSingleNode("//div[@class='content--wrapper']/div[@class='detail-error content listing--content']/h1[@class='detail-error--headline']").InnerText;
+
+                    item.articleName = "Artikel nicht mehr verfügbar!";
+                    item.articlePicture = "https://hardwarerat.de/media/image/85/fa/30/logo-klein.png";
+                    item.hardwareRatPrice = 0;
+                }
+                catch (Exception)
+                {
+                }
+
                 retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='price--content content--default']/meta").Attributes["content"].Value.Replace(".", ",");
                 retValName = document.DocumentNode.SelectSingleNode("//h1[@class='product--title']").InnerText.Replace("\n", "");
                 retValPicture = document.DocumentNode.SelectSingleNode("//span[@class='image--media']/img").Attributes["src"].Value;
@@ -174,7 +188,15 @@ namespace PreisVergleich.ViewModel
             {
                 if(result == true)
                 {
-                    Task.Run(() => LoadGridItems(true));
+                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie alle Artikeldaten neuladen?", "Hinweis!", MessageBoxButtons.YesNo);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        Task.Run(() => LoadGridItems(true));
+                    }
+                    else if (dialogResult == DialogResult.No)
+                    {
+                        Task.Run(() => LoadGridItems(false));
+                    }
                 }
             }
         }
@@ -202,6 +224,16 @@ namespace PreisVergleich.ViewModel
         private void UpdateGridCommand(object context)
         {
             Task.Run(() => LoadGridItems(true));
+        }
+
+        public ICommand UpdateGridOnly
+        {
+            get { return new DelegateCommand<object>(UpdateGridOnlyCommand); }
+        }
+
+        private void UpdateGridOnlyCommand(object context)
+        {
+            Task.Run(() => LoadGridItems(false));
         }
 
         public ICommand DeleteItem
@@ -246,7 +278,6 @@ namespace PreisVergleich.ViewModel
             }
             Process.Start(selectedItem.compareURL);
         }
-
 
         #endregion
     }

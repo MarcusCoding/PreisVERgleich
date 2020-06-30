@@ -117,6 +117,21 @@ namespace PreisVergleich.ViewModel
                     HtmlWeb webPage = new HtmlWeb();
                     HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
                     document = webPage.Load(urlHWRat);
+
+                    //Abfangen wenn es den Artikel nicht mehr gibt / deaktivert
+                    try
+                    {
+                        string errorString = document.DocumentNode.SelectSingleNode("//div[@class='content--wrapper']/div[@class='detail-error content listing--content']/h1[@class='detail-error--headline']").InnerText;
+
+                        hwProductName = "Artikel nicht mehr verfügbar!";
+                        hwProductPicture = "https://hardwarerat.de/media/image/85/fa/30/logo-klein.png";
+
+                        return;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
                     hwProductPrice = document.DocumentNode.SelectSingleNode("//span[@class='price--content content--default']/meta").Attributes["content"].Value.Replace(".", ",");
                     hwProductName = document.DocumentNode.SelectSingleNode("//h1[@class='product--title']").InnerText.Replace("\n", "");
                     hwProductPicture = document.DocumentNode.SelectSingleNode("//span[@class='image--media']/img").Attributes["src"].Value;
@@ -182,6 +197,13 @@ namespace PreisVergleich.ViewModel
             {
                 try
                 {
+                    if(hwProductName == "Artikel nicht mehr verfügbar!")
+                    {
+                        MessageBox.Show("HardwareRat Artikel ungültig!");
+
+                        return;
+                    }
+
                     HtmlWeb webPage = new HtmlWeb();
                     HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
 
