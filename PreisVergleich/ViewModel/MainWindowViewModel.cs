@@ -346,7 +346,7 @@ namespace PreisVergleich.ViewModel
                 string xmlStr;
                 using (var wc = new WebClient())
                 {
-                    xmlStr = wc.DownloadString("https://hardwarerat.de/backend/export/index/PVExport?feedID=18&hash=60e9cd3ac2423a1301ccc8e140d04942");
+                    xmlStr = wc.DownloadString(Properties.Settings.Default.URL);
                 }
                 var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(xmlStr);

@@ -34,5 +34,18 @@ namespace PreisVergleich.Properties {
                 this["DatebaseLocation"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://hardwarerat.de/backend/export/index/PVExport?feedID=18&hash=60e9cd3ac2423" +
+            "a1301ccc8e140d04942")]
+        public string URL {
+            get {
+                return ((string)(this["URL"]));
+            }
+            set {
+                this["URL"] = value;
+            }
+        }
     }
 }

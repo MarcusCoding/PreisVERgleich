@@ -5,5 +5,8 @@
     <Setting Name="DatebaseLocation" Type="System.String" Scope="User">
       <Value Profile="(Default)">{PROJECT}\ProjectData.sqlite</Value>
     </Setting>
+    <Setting Name="URL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://hardwarerat.de/backend/export/index/PVExport?feedID=18&amp;hash=60e9cd3ac2423a1301ccc8e140d04942</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
