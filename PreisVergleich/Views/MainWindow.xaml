@@ -43,6 +43,7 @@
         </Grid.RowDefinitions>
         <DataGrid Grid.Row="0" MinRowHeight="32" HorizontalAlignment="Stretch" ItemsSource="{Binding produktItems}" SelectedItem="{Binding selectedItem}" AutoGenerateColumns="False" IsReadOnly="True" Grid.ColumnSpan="2">
             <DataGrid.Columns>
+                <DataGridTextColumn Header="Produktnummer HardwareRat" Binding="{Binding hardwareRatID}"  />
                 <DataGridTextColumn Header="Produktname HardwareRat" Binding="{Binding articleName}"  />
                 <DataGridTemplateColumn Header="Produktbild">
                     <DataGridTemplateColumn.CellTemplate>

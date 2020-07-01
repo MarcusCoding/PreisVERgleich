@@ -32,7 +32,7 @@ namespace PreisVergleich.Helper
                     connection.Open();
 
                     string sql = "create table PRODUKTE (produktID INTEGER PRIMARY KEY NOT " +
-                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), articleName varchar(300), articleURL varchar(300))";
+                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), articleName varchar(300), articleURL varchar(300), hardwareRatID varchar(100))";
 
                     SQLiteCommand command = new SQLiteCommand(sql, connection);
                     command.ExecuteNonQuery();
@@ -80,6 +80,7 @@ namespace PreisVergleich.Helper
                                     produktID = int.Parse(reader[7].ToString()),
                                     articleName = reader[8].ToString(),
                                     articlePicture = reader[9].ToString(),
+                                    hardwareRatID = string.IsNullOrEmpty(reader[10].ToString()) ? 0 : int.Parse(reader[10].ToString()),
                                 };
                                 retVal.Add(dataRow);
                             }
@@ -102,7 +103,7 @@ namespace PreisVergleich.Helper
 
         public void InsertItem(ProduktModell item)
         {
-            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName, articleURL) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', '{item.hardwareRatPrice}', '{item.comparePrice}', '{item.State}', '{item.priceDifference}', '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}')";
+            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName, articleURL, hardwareRatID) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', '{item.hardwareRatPrice}', '{item.comparePrice}', '{item.State}', '{item.priceDifference}', '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}', '{item.hardwareRatID}')";
             if (connection.State == ConnectionState.Open)
             {
                 try

@@ -65,7 +65,7 @@ namespace PreisVergleich.ViewModel
                 bool waitTask = false;
 
                 //Sqls laden
-                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL FROM PRODUKTE";
+                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL, hardwareRatID FROM PRODUKTE";
 
                 List<ProduktModell> retValProducts = sQLiteHelper.getGridData(sSQL);
                 if (retValProducts != null)
@@ -117,6 +117,12 @@ namespace PreisVergleich.ViewModel
                         else if (difference > 2)
                         {
                             row.State = "3€ oder mehr darüber";
+                        }
+
+                        //Falls kein Preis bei Geizhals vorhanden
+                        if (row.comparePrice == 0)
+                        {
+                            row.State = "günstiger";
                         }
 
                         sQLiteHelper.UpdateItem(row);
@@ -179,10 +185,18 @@ namespace PreisVergleich.ViewModel
                 item.articlePicture = retValPicture;
 
                 //Geizhals
-                document = new HtmlAgilityPack.HtmlDocument();
-                document = webPage.Load(item.compareURL);
-                retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
-                item.comparePrice = Math.Round(double.Parse(retValPrice), 2);
+                try
+                {
+                    document = new HtmlAgilityPack.HtmlDocument();
+                    document = webPage.Load(item.compareURL);
+                    retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
+                    item.comparePrice = Math.Round(double.Parse(retValPrice), 2);
+                }
+                catch(Exception)
+                {
+                    item.comparePrice = 0;
+                }
+
             }
             catch (Exception ex)
             {
@@ -399,19 +413,27 @@ namespace PreisVergleich.ViewModel
                         {
                             try
                             {
-                                document = new HtmlAgilityPack.HtmlDocument();
+                                try
+                                {
+                                    document = new HtmlAgilityPack.HtmlDocument();
 
-                                //Name parsen, damit er akzeptiert wird
-                                string searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C");
+                                    //Name parsen, damit er akzeptiert wird
+                                    string searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C");
 
-                                document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
+                                    document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
 
-                                //GeizhalsURL öffnen
-                                row.compareURL = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                                    //GeizhalsURL öffnen
+                                    row.compareURL = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
 
-                                document = webPage.Load(row.compareURL);
+                                    document = webPage.Load(row.compareURL);
 
-                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                                    row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                                }
+                                catch (Exception) 
+                                {
+                                    row.comparePrice = 0;
+                                }
 
                                 double difference = Math.Round(row.hardwareRatPrice - row.comparePrice, 2);
                                 row.priceDifference = difference;
@@ -428,22 +450,39 @@ namespace PreisVergleich.ViewModel
                                     row.State = "3€ oder mehr darüber";
                                 }
 
+                                //Falls kein Preis bei Geizhals vorhanden
+                                if(row.comparePrice == 0)
+                                {
+                                    row.State = "günstiger";
+                                }
+
                                 //4 Sekunden warten GitHub Ban zu umgehen
                                 System.Threading.Thread.Sleep(4000);
                             }
-                            catch (Exception ex)
+                            catch (Exception)
                             {
 
                             }
                         }
 
-                        await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                        if(!produktItems.Any(y => y.hardwareRatID == row.hardwareRatID))
                         {
-                            statusValue = $"Übernehme Artikel {articleAdded} von {articleMax}";
-                        }));
+                            row.articleName += " (Neu)";
+                            sQLiteHelper.InsertItem(row);
+                            articleAdded++;
 
-                        sQLiteHelper.InsertItem(row);
-                        articleAdded++;
+                            await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                            {
+                                statusValue = $"Übernehme Artikel {articleAdded} von {articleMax}";
+                            }));
+                        }
+                        else
+                        {
+                            await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                            {
+                                statusValue = $"Überspringe Artikel {row.hardwareRatID} da bereits vorhanden!";
+                            }));
+                        }
 
                     }
                 }
@@ -453,7 +492,7 @@ namespace PreisVergleich.ViewModel
                 }));
                 LoadGridItems(false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }

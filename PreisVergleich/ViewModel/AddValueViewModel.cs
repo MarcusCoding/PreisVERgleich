@@ -113,6 +113,10 @@ namespace PreisVergleich.ViewModel
                 {
                     newsatz.priceDifference = double.Parse(productDifference);
                 }
+                if (!string.IsNullOrEmpty(hwProductName))
+                {
+                    newsatz.articleName = hwProductName;
+                }
 
                 sqlHelper.InsertItem(newsatz);
             }
@@ -187,7 +191,14 @@ namespace PreisVergleich.ViewModel
 
                     document = new HtmlAgilityPack.HtmlDocument();
                     document = webPage.Load(urlCompareSite);
-                    ghzProductPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
+                    try
+                    {
+                        ghzProductPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
+                    }
+                    catch(Exception)
+                    {
+                        ghzProductPrice = "0";
+                    }
                 }
                 catch(Exception)
                 {
@@ -214,6 +225,13 @@ namespace PreisVergleich.ViewModel
                     {
                         currentState = "3€ oder mehr darüber";
                     }
+
+                    //Falls kein Preis bei Geizhals vorhanden
+                    if (double.Parse(ghzProductPrice) == 0)
+                    {
+                        currentState = "günstiger";
+                    }
+
                 }
             }
         }
@@ -237,16 +255,24 @@ namespace PreisVergleich.ViewModel
                         return;
                     }
 
-                    HtmlWeb webPage = new HtmlWeb();
-                    HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
+                    try
+                    {
+                        HtmlWeb webPage = new HtmlWeb();
+                        HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
 
-                    //Name parsen, damit er akzeptiert wird
-                    string searchProduct = hwProductName.Replace(" ", "+").Replace(",", "%2C");
+                        //Name parsen, damit er akzeptiert wird
+                        string searchProduct = hwProductName.Replace(" ", "+").Replace(",", "%2C");
 
-                    document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
+                        document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
 
-                    //GeizhalsURL Feld befüllen
-                    urlCompareSite = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                        //GeizhalsURL Feld befüllen
+                        urlCompareSite = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                    }
+                    catch(Exception)
+                    {
+
+                    }
+   
                 }
                 catch(Exception)
                 {
