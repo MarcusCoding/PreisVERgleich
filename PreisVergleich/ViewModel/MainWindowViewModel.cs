@@ -478,9 +478,12 @@ namespace PreisVergleich.ViewModel
                         }
                         else
                         {
+                            //Artikel nur updaten
+                            sQLiteHelper.UpdateItemXML(row);
+
                             await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                statusValue = $"Überspringe Artikel {row.hardwareRatID} da bereits vorhanden!";
+                                statusValue = $"Update Artikel {row.hardwareRatID}, da er bereits vorhanden ist!";
                             }));
                         }
 

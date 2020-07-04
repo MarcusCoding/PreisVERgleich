@@ -31,6 +31,8 @@ namespace PreisVergleich.ViewModel
 
         public string currentState { get; set; }
 
+        public int hardwareRatID { get; set; }
+
         #endregion
 
         public SQLiteHelper sqlHelper;
@@ -48,6 +50,7 @@ namespace PreisVergleich.ViewModel
             {
                 urlHWRat = selectedItem.hardwareRatURL;
                 urlCompareSite = selectedItem.compareURL;
+                hardwareRatID = selectedItem.hardwareRatID;
                 orginalItem = selectedItem;
             }
             string connectionString = Properties.Settings.Default.DatebaseLocation.Replace("{PROJECT}", AppDomain.CurrentDomain.BaseDirectory);
@@ -117,6 +120,10 @@ namespace PreisVergleich.ViewModel
                 {
                     newsatz.articleName = hwProductName;
                 }
+                if (hardwareRatID > -1)
+                {
+                    newsatz.hardwareRatID = hardwareRatID;
+                }
 
                 sqlHelper.InsertItem(newsatz);
             }
@@ -124,6 +131,7 @@ namespace PreisVergleich.ViewModel
             {
                 orginalItem.hardwareRatURL = urlHWRat;
                 orginalItem.compareURL = urlCompareSite;
+                orginalItem.hardwareRatID = hardwareRatID;
                 sqlHelper.UpdateItem(orginalItem);
             }
 

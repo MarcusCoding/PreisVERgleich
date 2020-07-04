@@ -103,7 +103,10 @@ namespace PreisVergleich.Helper
 
         public void InsertItem(ProduktModell item)
         {
-            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName, articleURL, hardwareRatID) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', '{item.hardwareRatPrice}', '{item.comparePrice}', '{item.State}', '{item.priceDifference}', '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}', '{item.hardwareRatID}')";
+            string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName," +
+                $" articleURL, hardwareRatID) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', {item.hardwareRatPrice.ToString().Replace(",", ".")}, {item.comparePrice.ToString().Replace(",", ".")}, " +
+                $"'{item.State}', {item.priceDifference.ToString().Replace(",", ".")}, '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}', '{item.hardwareRatID}')";
+
             if (connection.State == ConnectionState.Open)
             {
                 try
@@ -128,7 +131,11 @@ namespace PreisVergleich.Helper
 
         public void UpdateItem(ProduktModell item)
         {
-            string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = '{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', compareSiteURL = '{item.compareURL}', hardwareRatPrice = '{item.hardwareRatPrice}', compareSitePrice = '{item.comparePrice}', state = '{item.State}', differencePrice = '{item.priceDifference}' where produktID = '{item.produktID}'";
+            string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
+                $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', compareSiteURL = '{item.compareURL}'," +
+                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, compareSitePrice = {item.comparePrice.ToString().Replace(",", ".")}, state = '{item.State}', " +
+                $"differencePrice = {item.priceDifference.ToString().Replace(",", ".")}, hardwareRatID = '{item.hardwareRatID}' where produktID = '{item.produktID}'";
+
             if (connection.State == ConnectionState.Open)
             {
                 try
@@ -151,6 +158,33 @@ namespace PreisVergleich.Helper
             }
         }
 
+        public void UpdateItemXML(ProduktModell item)
+        {
+            string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
+                $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', " +
+                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, where hardwareRatID = '{item.hardwareRatID}'";
+
+            if (connection.State == ConnectionState.Open)
+            {
+                try
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + "Fehler beim Ausführen des Update-SQls", ex);
+                    log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + ": " + sql);
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
 
         public void DeleteItem(ProduktModell item)
         {

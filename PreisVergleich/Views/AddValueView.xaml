@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PreisVergleich.Views"
         xmlns:converter="clr-namespace:PreisVergleich.Converter"
         mc:Ignorable="d"
-        Title="Satz hinzufuegen" Height="600" Width="600">
+        Title="Satz hinzufuegen" Height="620" Width="600">
     <Window.Resources>
         <converter:NumberToCurrencyConverter x:Key="currencyConverter"/>
         <converter:ColorConverter x:Key="colorConverter"/>
@@ -25,6 +25,9 @@
         <StackPanel Grid.Row="0" Orientation="Vertical">
             <Label Content="URL HardwareRat"/>
             <TextBox Margin="5" Text="{Binding urlHWRat}" />
+            
+            <Label Content="ID HardwareRat"/>
+            <TextBox Margin="5" Text="{Binding hardwareRatID}" />
 
             <Label Content="URL Vergleich"/>
             <TextBox  Margin="5" Text="{Binding urlCompareSite}" />
