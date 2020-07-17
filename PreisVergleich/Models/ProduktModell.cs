@@ -23,6 +23,8 @@
         public double priceDifference { get; set; }
 
         public string compareSiteType { get; set; }
+
+        public string gTIN { get; set; }
     }
 
     public enum OperationMode

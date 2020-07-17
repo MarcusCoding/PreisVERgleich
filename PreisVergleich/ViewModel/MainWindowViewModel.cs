@@ -36,6 +36,7 @@ namespace PreisVergleich.ViewModel
         public ProduktModell selectedItem { get; set; }
 
         public string statusValue { get; set; }
+        public string rowsLoaded { get; set; }
 
         //Konstruktor
         public MainWindowViewModel()
@@ -130,6 +131,8 @@ namespace PreisVergleich.ViewModel
                         tmpProduktItems.Add(row);
                         countFor++;
                     }
+
+                    rowsLoaded = $"{retValProducts.Count} Produkte geladen!";
 
                     await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                     {
@@ -381,6 +384,7 @@ namespace PreisVergleich.ViewModel
                         articlePicture = artikelDaten[i].ChildNodes[6].InnerText,
                         articleName = artikelDaten[i].ChildNodes[1].InnerText,
                         hardwareRatID = int.Parse(artikelDaten[i].ChildNodes[0].InnerText),
+                        gTIN = artikelDaten[i].ChildNodes[11].InnerText,
                     };
 
                     listXML.Add(model);
@@ -418,16 +422,57 @@ namespace PreisVergleich.ViewModel
                                     document = new HtmlAgilityPack.HtmlDocument();
 
                                     //Name parsen, damit er akzeptiert wird
-                                    string searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C");
+                                    string searchProduct = row.gTIN.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
 
                                     document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
 
-                                    //GeizhalsURL öffnen
-                                    row.compareURL = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                                    if (webPage.ResponseUri.ToString().Contains("?fs="))
+                                    {
+                                        try
+                                        {
+                                            //GeizhalsURL öffnen
+                                            try
+                                            {
+                                                string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
 
-                                    document = webPage.Load(row.compareURL);
+                                                row.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.de/" + foundURL;
 
-                                    row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                                                document = webPage.Load(row.compareURL);
+
+                                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                //Suche per Name probieren
+                                                searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
+
+                                                document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=&sort=p");
+
+                                                string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+
+                                                row.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.de/" + foundURL;
+
+                                                document = webPage.Load(row.compareURL);
+
+                                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                                            }
+
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            log.writeLog(LogType.ERROR, $"{MethodBase.GetCurrentMethod().Name}: Kein Artikel gefunden", ex);
+                                            row.compareURL = "Artikel bei Geizhals nicht gefunden";
+                                            row.comparePrice = 0;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        row.compareURL = webPage.ResponseUri.ToString();
+                                        row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                                    }
 
                                 }
                                 catch (Exception) 

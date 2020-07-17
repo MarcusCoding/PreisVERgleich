@@ -127,8 +127,18 @@
             </StackPanel>
         </Button>
         <StatusBar Grid.Row="6">
+            
             <StatusBarItem>
-                <TextBlock Text="{Binding statusValue, Mode=TwoWay}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding statusValue, Mode=TwoWay}" />
+                    <TextBlock Grid.Column="1" Text="{Binding rowsLoaded, Mode=TwoWay}" />
+                    
+                </Grid>
             </StatusBarItem>
         </StatusBar>
     </Grid>
