@@ -563,14 +563,6 @@ namespace PreisVergleich.ViewModel
         {
             try
             {
-                bool useGeizhals = false;
-
-                DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie den Geizhalsbezug mitladen? (Dies nimmt einige Zeit mehr in Anspruch)", "Hinweis!", MessageBoxButtons.YesNo);
-                if (dialogResult == DialogResult.Yes)
-                {
-                    useGeizhals = true;
-                }
-
                 string xmlStr;
                 using (var wc = new WebClient())
                 {
@@ -579,7 +571,33 @@ namespace PreisVergleich.ViewModel
                 var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(xmlStr);
 
-                Task.Run(() => LoadXMLintoSQLite(xmlDoc, useGeizhals));
+                Task.Run(() => LoadXMLintoSQLite(xmlDoc, true));
+
+            }
+            catch (Exception ex)
+            {
+                log.writeLog(LogType.ERROR, MethodBase.GetCurrentMethod().Name + $": Fehler beim Laden vom XML", ex);
+            }
+        }
+
+        public ICommand ImportXMLHW
+        {
+            get { return new DelegateCommand<object>(ImportXMLHWCommand); }
+        }
+
+        private void ImportXMLHWCommand(object context)
+        {
+            try
+            {
+                string xmlStr;
+                using (var wc = new WebClient())
+                {
+                    xmlStr = wc.DownloadString(Properties.Settings.Default.URL);
+                }
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlStr);
+
+                Task.Run(() => LoadXMLintoSQLite(xmlDoc, false));
 
             }
             catch (Exception ex)
@@ -696,7 +714,7 @@ namespace PreisVergleich.ViewModel
                         {
                             //Artikel nur updaten
                             row.IsNew = false;
-                            sQLiteHelper.UpdateItemXML(row);
+                            sQLiteHelper.UpdateItemXML(row, loadGeizhals);
 
                             await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {

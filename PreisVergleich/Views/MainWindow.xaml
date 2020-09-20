@@ -75,7 +75,11 @@
                         LargeIcon="/PreisVergleich;component/Resources/reload.png" />
                     <fluent:Button
                         Command="{Binding ImportXML}"
-                        Header="Import XML"
+                        Header="Import XML (HW + GZ)"
+                        LargeIcon="/PreisVergleich;component/Resources/import.png" />
+                    <fluent:Button
+                        Command="{Binding ImportXMLHW}"
+                        Header="Import XML (nur HW)"
                         LargeIcon="/PreisVergleich;component/Resources/import.png" />
                     <fluent:Button
                         Command="{Binding DeleteDB}"

@@ -167,13 +167,25 @@ namespace PreisVergleich.Helper
             }
         }
 
-        public void UpdateItemXML(ProduktModell item)
+        public void UpdateItemXML(ProduktModell item, bool loadGeizhals)
         {
-            string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
-                $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', " +
-                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, hasGeizhalsURL = '{(item.hasGeizhalsURL ? "1" : "0")}'," +
-                $" IsNew = '{(item.IsNew ? "1" : "0")}', compareSiteURL = '{item.compareURL}', compareSitePrice = '{item.comparePrice.ToString().Replace(",", ".")}', state = '{item.State}', " +
-                $" differencePrice = '{item.priceDifference.ToString().Replace(",", ".")}' where hardwareRatID = '{item.hardwareRatID}'";
+            string sql = string.Empty;
+
+            if (loadGeizhals)
+            {
+                sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
+               $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', " +
+               $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, hasGeizhalsURL = '{(item.hasGeizhalsURL ? "1" : "0")}'," +
+               $" IsNew = '{(item.IsNew ? "1" : "0")}', compareSiteURL = '{item.compareURL}', compareSitePrice = '{item.comparePrice.ToString().Replace(",", ".")}', state = '{item.State}', " +
+               $" differencePrice = '{item.priceDifference.ToString().Replace(",", ".")}' where hardwareRatID = '{item.hardwareRatID}'";
+            }
+            else
+            {
+                sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
+               $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', " +
+               $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, " +
+               $" IsNew = '{(item.IsNew ? "1" : "0")}', compareSiteURL = '{item.compareURL}' where hardwareRatID = '{item.hardwareRatID}'";
+            }
 
             if (connection.State == ConnectionState.Open)
             {
