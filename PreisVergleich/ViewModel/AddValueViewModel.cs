@@ -88,11 +88,13 @@ namespace PreisVergleich.ViewModel
                 {
                     hardwareRatURL = urlHWRat,
                     compareURL = urlCompareSite,
+                    hasGeizhalsURL = string.IsNullOrEmpty(urlCompareSite) ? false : true,
                     hardwareRatPrice = 0,
                     comparePrice = 0,
                     priceDifference = 0,
                     State = "unbekannt",
-                    compareSiteType = "Geizhals"
+                    compareSiteType = "Geizhals",
+                    AddedAt = DateTime.Now,
                 };
 
                 //Werte ersetzen, falls Daten laden genutzt wurde
@@ -132,6 +134,7 @@ namespace PreisVergleich.ViewModel
                 orginalItem.hardwareRatURL = urlHWRat;
                 orginalItem.compareURL = urlCompareSite;
                 orginalItem.hardwareRatID = hardwareRatID;
+                orginalItem.hasGeizhalsURL = string.IsNullOrEmpty(urlCompareSite) ? false : true;
                 sqlHelper.UpdateItem(orginalItem);
             }
 
@@ -275,6 +278,8 @@ namespace PreisVergleich.ViewModel
 
                         //GeizhalsURL Feld befüllen
                         urlCompareSite = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+
+
                     }
                     catch(Exception)
                     {

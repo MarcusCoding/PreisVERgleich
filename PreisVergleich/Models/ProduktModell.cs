@@ -1,4 +1,6 @@
-﻿namespace PreisVergleich.Models
+﻿using System;
+
+namespace PreisVergleich.Models
 {
     public class ProduktModell
     {
@@ -25,6 +27,12 @@
         public string compareSiteType { get; set; }
 
         public string gTIN { get; set; }
+
+        public DateTime AddedAt { get; set; }
+
+        public bool IsNew { get; set; }
+
+        public bool hasGeizhalsURL { get; set; }
     }
 
     public enum OperationMode

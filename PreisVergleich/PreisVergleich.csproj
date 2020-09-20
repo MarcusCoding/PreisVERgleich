@@ -43,14 +43,23 @@
     <ApplicationIcon>logo_hw.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ControlzEx, Version=4.0.0.0, Culture=neutral, PublicKeyToken=69f1c32f803d307e, processorArchitecture=MSIL">
+      <HintPath>..\packages\ControlzEx.4.3.0\lib\net462\ControlzEx.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Fluent, Version=8.0.0.0, Culture=neutral, PublicKeyToken=3e436e32a8c5546f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Fluent.Ribbon.8.0.0\lib\net462\Fluent.dll</HintPath>
+    </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.11.24.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <HintPath>..\packages\HtmlAgilityPack.1.11.24\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xaml.Behaviors, Version=1.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Xaml.Behaviors.Wpf.1.1.19\lib\net45\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.7.2\lib\net45\NLog.dll</HintPath>
@@ -97,6 +106,8 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -107,9 +118,12 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
     <Reference Include="Xamarin.Forms.Core, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Xamarin.Forms.3.6.0.344457\lib\netstandard2.0\Xamarin.Forms.Core.dll</HintPath>
     </Reference>
@@ -126,7 +140,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter\ColorConverter.cs" />
+    <Compile Include="Converter\HasGZUrlToImage.cs" />
     <Compile Include="Converter\NumberToCurrencyConverter.cs" />
+    <Compile Include="Converter\SortedBoolToImage.cs" />
     <Compile Include="Helper\Logger.cs" />
     <Compile Include="Helper\SQLiteHelper.cs" />
     <Compile Include="Models\ProduktModell.cs" />
@@ -166,6 +182,24 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="Resources\screen_newui.png" />
+    <Resource Include="Resources\filtering\filter_date.png" />
+    <Resource Include="Resources\filtering\filter_date_down.png" />
+    <Resource Include="Resources\filtering\filter_date_up.png" />
+    <Resource Include="Resources\filtering\filter_geizhals.png" />
+    <Resource Include="Resources\filtering\filter_geizhals_down.png" />
+    <Resource Include="Resources\filtering\filter_geizhals_up.png" />
+    <Resource Include="Resources\filtering\filter_price.png" />
+    <Resource Include="Resources\filtering\filter_price_down.png" />
+    <Resource Include="Resources\filtering\filter_price_up.png" />
+    <Resource Include="Resources\filtering\filter_state.png" />
+    <Resource Include="Resources\filtering\filter_state_down.png" />
+    <Resource Include="Resources\filtering\filter_state_up.png" />
+    <Resource Include="Resources\filtering\remove_filter_new.png" />
+    <Resource Include="Resources\new.jpg" />
+    <Resource Include="Resources\price_tag.png" />
+    <Resource Include="Resources\state.png" />
+    <Resource Include="Resources\trashcan.png" />
     <Resource Include="Resources\import.png" />
     <Resource Include="Resources\reload_offline.png" />
     <Resource Include="Resources\additem.png" />

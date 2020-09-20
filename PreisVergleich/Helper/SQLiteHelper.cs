@@ -32,7 +32,9 @@ namespace PreisVergleich.Helper
                     connection.Open();
 
                     string sql = "create table PRODUKTE (produktID INTEGER PRIMARY KEY NOT " +
-                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), articleName varchar(300), articleURL varchar(300), hardwareRatID varchar(100))";
+                        " NULL, hardwareRatURL varchar(200), compareSiteURL varchar(200), hardwareRatPrice REAL(10), " +
+                        "compareSitePrice REAL(10), state varchar(50), differencePrice REAL(10), compareSiteType varchar(100), " +
+                        "articleName nvarchar(300), articleURL varchar(300), hardwareRatID varchar(100), addedAt varchar(10), hasGeizhalsURL varchar(1), IsNew varchar(1), GTIN varchar(100))";
 
                     SQLiteCommand command = new SQLiteCommand(sql, connection);
                     command.ExecuteNonQuery();
@@ -81,6 +83,10 @@ namespace PreisVergleich.Helper
                                     articleName = reader[8].ToString(),
                                     articlePicture = reader[9].ToString(),
                                     hardwareRatID = string.IsNullOrEmpty(reader[10].ToString()) ? 0 : int.Parse(reader[10].ToString()),
+                                    AddedAt = reader[11].ToString() != null ? DateTime.Parse(reader[11].ToString()) : DateTime.MinValue,
+                                    hasGeizhalsURL = reader[12].ToString() == "1" ? true : false,
+                                    IsNew = reader[13].ToString() == "1" ? true : false,
+                                    gTIN = reader[14].ToString(),
                                 };
                                 retVal.Add(dataRow);
                             }
@@ -104,8 +110,10 @@ namespace PreisVergleich.Helper
         public void InsertItem(ProduktModell item)
         {
             string sql = $"INSERT INTO PRODUKTE (hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, articleName," +
-                $" articleURL, hardwareRatID) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', {item.hardwareRatPrice.ToString().Replace(",", ".")}, {item.comparePrice.ToString().Replace(",", ".")}, " +
-                $"'{item.State}', {item.priceDifference.ToString().Replace(",", ".")}, '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}', '{item.hardwareRatID}')";
+                $" articleURL, hardwareRatID, addedAt, hasGeizhalsURL, IsNew, GTIN) VALUES ('{item.hardwareRatURL}', '{item.compareURL}', {item.hardwareRatPrice.ToString().Replace(",", ".")}, {item.comparePrice.ToString().Replace(",", ".")}, " +
+                $"'{item.State}', {item.priceDifference.ToString().Replace(",", ".")}," +
+                $" '{item.compareSiteType}', '{item.articleName}', '{item.articlePicture}', '{item.hardwareRatID}', " +
+                $"'{item.AddedAt.ToString("dd.MM.yyyy")}', '{(item.hasGeizhalsURL ? "1": "0")}', '{(item.IsNew ? "1" : "0")}', '{item.gTIN}')";
 
             if (connection.State == ConnectionState.Open)
             {
@@ -133,8 +141,9 @@ namespace PreisVergleich.Helper
         {
             string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
                 $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', compareSiteURL = '{item.compareURL}'," +
-                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, compareSitePrice = {item.comparePrice.ToString().Replace(",", ".")}, state = '{item.State}', " +
-                $"differencePrice = {item.priceDifference.ToString().Replace(",", ".")}, hardwareRatID = '{item.hardwareRatID}' where produktID = '{item.produktID}'";
+                $" hardwareRatPrice = '{item.hardwareRatPrice.ToString().Replace(",", ".")}', compareSitePrice = '{item.comparePrice.ToString().Replace(",", ".")}', state = '{item.State}', " +
+                $" differencePrice = '{item.priceDifference.ToString().Replace(",", ".")}', hardwareRatID = '{item.hardwareRatID}', hasGeizhalsURL = '{(item.hasGeizhalsURL ? "1" : "0")}', IsNew = '{(item.IsNew ? "1" : "0")}' " +
+                $" where produktID = '{item.produktID}'";
 
             if (connection.State == ConnectionState.Open)
             {
@@ -162,7 +171,9 @@ namespace PreisVergleich.Helper
         {
             string sql = $"UPDATE PRODUKTE set articleURL = '{item.articlePicture}', articleName = " +
                 $"'{item.articleName}', hardwareRatURL = '{item.hardwareRatURL}', " +
-                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, where hardwareRatID = '{item.hardwareRatID}'";
+                $" hardwareRatPrice = {item.hardwareRatPrice.ToString().Replace(",", ".")}, hasGeizhalsURL = '{(item.hasGeizhalsURL ? "1" : "0")}'," +
+                $" IsNew = '{(item.IsNew ? "1" : "0")}', compareSiteURL = '{item.compareURL}', compareSitePrice = '{item.comparePrice.ToString().Replace(",", ".")}', state = '{item.State}', " +
+                $" differencePrice = '{item.priceDifference.ToString().Replace(",", ".")}' where hardwareRatID = '{item.hardwareRatID}'";
 
             if (connection.State == ConnectionState.Open)
             {

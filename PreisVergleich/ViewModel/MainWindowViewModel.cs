@@ -7,12 +7,15 @@ using Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -35,8 +38,19 @@ namespace PreisVergleich.ViewModel
 
         public ProduktModell selectedItem { get; set; }
 
+        public ICollectionView productGrid { get; set; }
+
         public string statusValue { get; set; }
         public string rowsLoaded { get; set; }
+
+        #region Sorting bools
+
+        public bool? SortedByDate { get; set; }
+        public bool? SortedByGZ { get; set; }
+        public bool? SortedByPrice { get; set; }
+        public bool? SortedByState { get; set; }
+
+        #endregion
 
         //Konstruktor
         public MainWindowViewModel()
@@ -52,13 +66,168 @@ namespace PreisVergleich.ViewModel
             if (sQLiteHelper != null)
             {
                 produktItems = new ObservableCollection<ProduktModell>();
-                LoadGridItems(false);
+                LoadGridItems(false, false);
                 log.writeLog(LogType.INFO, "Programmstart");
                 statusValue = "Start erfolgreich!";
             }
         }
 
-        public async void LoadGridItems(bool loadSiteData)
+        #region Grouping
+
+        public ICommand StateGrouping
+        {
+            get { return new DelegateCommand<object>(StateGroupingCommand); }
+        }
+
+        public void StateGroupingCommand(object action)
+        {
+            CollectionViewSource productDialog = new CollectionViewSource() { Source = produktItems };
+            productDialog.GroupDescriptions.Clear();
+            productDialog.GroupDescriptions.Add(new PropertyGroupDescription("State"));
+            productGrid = productDialog.View;
+        }
+
+        public ICommand HasGZUrlGrouping
+        {
+            get { return new DelegateCommand<object>(HasGZUrlGroupingCommand); }
+        }
+
+        public void HasGZUrlGroupingCommand(object action)
+        {
+            CollectionViewSource productDialog = new CollectionViewSource() { Source = produktItems };
+            productDialog.GroupDescriptions.Clear();
+            productDialog.GroupDescriptions.Add(new PropertyGroupDescription("hasGeizhalsURL"));
+            productGrid = productDialog.View;
+        }
+
+        public ICommand DeleteGrouping
+        {
+            get { return new DelegateCommand<object>(DeleteGroupingCommand); }
+        }
+
+        public void DeleteGroupingCommand(object action)
+        {
+            CollectionViewSource productDialog = new CollectionViewSource() { Source = produktItems };
+            productDialog.GroupDescriptions.Clear();
+            productGrid = productDialog.View;
+        }
+
+        #endregion
+
+        #region Sorting 
+
+        public ICommand SortByState
+        {
+            get { return new DelegateCommand(SortByStateCommand); }
+        }
+
+        public void SortByStateCommand()
+        {
+            if (SortedByState == true)
+            {
+                SortedByState = false;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderByDescending(y => y.State));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+            else
+            {
+                SortedByState = true;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderBy(y => y.State));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+        }
+
+        public ICommand SortByDifference
+        {
+            get { return new DelegateCommand(SortByDifferenceCommand); }
+        }
+
+        public void SortByDifferenceCommand()
+        {
+            if (SortedByPrice == true)
+            {
+                SortedByPrice = false;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderByDescending(y => y.priceDifference));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+            else
+            {
+                SortedByPrice = true;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderBy(y => y.priceDifference));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+        }
+
+        public ICommand SortByDate
+        {
+            get { return new DelegateCommand(SortByDateCommand); }
+        }
+
+        public void SortByDateCommand()
+        {
+            if (SortedByDate == true)
+            {
+                SortedByDate = false;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderByDescending(y => y.AddedAt));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+            else
+            {
+                SortedByDate = true;
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderBy(y => y.AddedAt));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+            }
+        }
+
+        public ICommand DeleteSorting
+        {
+            get { return new DelegateCommand(DeleteSortingCommand); }
+        }
+
+        public void DeleteSortingCommand()
+        {
+            SortedByGZ = null;
+            SortedByPrice = null;
+            SortedByState = null;
+            SortedByDate = null;
+
+            produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderBy(y => y.hardwareRatID));
+            CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+            productGrid = productCView.View;
+        }
+
+        public ICommand SortByGZURL
+        {
+            get { return new DelegateCommand(SortByGZURLCommand); }
+        }
+
+        public void SortByGZURLCommand()
+        {
+            if (SortedByGZ == true)
+            {
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderByDescending(y => y.hasGeizhalsURL));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+                SortedByGZ = false;
+            }
+            else
+            {
+                produktItems = new ObservableCollection<ProduktModell>(produktItems.OrderBy(y => y.hasGeizhalsURL));
+                CollectionViewSource productCView = new CollectionViewSource() { Source = produktItems };
+                productGrid = productCView.View;
+                SortedByGZ = true;
+            }
+        }
+
+        #endregion
+
+        public async void LoadGridItems(bool loadSiteData, bool onlyUpdateEmpty)
         {
             try
             {
@@ -66,7 +235,7 @@ namespace PreisVergleich.ViewModel
                 bool waitTask = false;
 
                 //Sqls laden
-                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL, hardwareRatID FROM PRODUKTE";
+                string sSQL = "SELECT hardwareRatURL, compareSiteURL, hardwareRatPrice, compareSitePrice, state, differencePrice, compareSiteType, produktID, articleName, articleURL, hardwareRatID, addedAt, hasGeizhalsURL, IsNew, GTIN FROM PRODUKTE";
 
                 List<ProduktModell> retValProducts = sQLiteHelper.getGridData(sSQL);
                 if (retValProducts != null)
@@ -75,32 +244,35 @@ namespace PreisVergleich.ViewModel
 
                     if (loadSiteData)
                     {
-                       
                         DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie mit Zeitversatz arbeiten, um Geizhals Ban zu umgehen?", "Hinweis!", MessageBoxButtons.YesNo);
                         if (dialogResult == DialogResult.Yes)
                         {
                             waitTask = true;
                         }
                     }
-                   
+
                     foreach (ProduktModell row in retValProducts)
                     {
                         await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                         {
-                            statusValue = $"Lade Artikel {countFor} von {retValProducts.Count}";
+                            statusValue = $"Lade Artikel {countFor} von {retValProducts.Count} ({Math.Round(((double)countFor / retValProducts.Count * 100), 0)}%)";
                         }));
 
                         if (loadSiteData)
                         {
                             //Daten abrufen
-                            ProduktModell retVal = getHTMLData(row);
+                            ProduktModell retVal = getHTMLData(row, onlyUpdateEmpty);
                             row.comparePrice = retVal.comparePrice;
                             row.hardwareRatPrice = retVal.hardwareRatPrice;
                             row.articleName = retVal.articleName;
 
-                            if (waitTask)
+                            if (waitTask && !row.hasGeizhalsURL && onlyUpdateEmpty)
                             {
-                                System.Threading.Thread.Sleep(4000);
+                                System.Threading.Thread.Sleep(2500);
+                            }
+                            else if (waitTask && !onlyUpdateEmpty)
+                            {
+                                System.Threading.Thread.Sleep(2500);
                             }
                         }
 
@@ -132,17 +304,24 @@ namespace PreisVergleich.ViewModel
                         countFor++;
                     }
 
-                    rowsLoaded = $"{retValProducts.Count} Produkte geladen!";
+                    rowsLoaded = $"{retValProducts.Count} Produkte geladen [{retValProducts.Count(y => y.State == "günstiger")} günstiger; {retValProducts.Count(y => y.State == "1-2€ darüber")} 1-2€ darüber; {retValProducts.Count(y => y.State == "3€ oder mehr darüber")} 3€ oder mehr]!";
 
                     await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                     {
                         statusValue = "Übersicht erfolgreich aktualisiert!";
                         produktItems = new ObservableCollection<ProduktModell>(tmpProduktItems);
+                        CollectionViewSource productCView = new CollectionViewSource() { Source = tmpProduktItems };
+                        productGrid = productCView.View;
                     }));
                 }
                 else
                 {
                     produktItems = new ObservableCollection<ProduktModell>();
+                    await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                    {
+                        statusValue = "Keine Daten vorhanden!";
+                        productGrid = null;
+                    }));
                     return;
                 }
                 return;
@@ -154,7 +333,7 @@ namespace PreisVergleich.ViewModel
             }
         }
 
-        public ProduktModell getHTMLData(ProduktModell item)
+        public ProduktModell getHTMLData(ProduktModell item, bool onlyUpdateEmpty)
         {
             string retValPrice = "0";
             string retValName = "Nicht gefunden!";
@@ -187,17 +366,48 @@ namespace PreisVergleich.ViewModel
                 item.articleName = retValName;
                 item.articlePicture = retValPicture;
 
-                //Geizhals
-                try
+                if (onlyUpdateEmpty && item.hasGeizhalsURL == false)
                 {
-                    document = new HtmlAgilityPack.HtmlDocument();
-                    document = webPage.Load(item.compareURL);
-                    retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
-                    item.comparePrice = Math.Round(double.Parse(retValPrice), 2);
+                    //Geizhals
+                    try
+                    {
+                        if (!item.hasGeizhalsURL)
+                        {
+                            //URL laden
+                            ProduktModell retVal = SearchGeizhalsData(item.gTIN, item.articleName);
+                            item.compareURL = retVal.compareURL;
+                            item.comparePrice = retVal.comparePrice;
+                            item.hasGeizhalsURL = retVal.hasGeizhalsURL;
+                        }
+
+                        document = new HtmlAgilityPack.HtmlDocument();
+                        document = webPage.Load(item.compareURL);
+                        retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
+                        item.comparePrice = Math.Round(double.Parse(retValPrice), 2);
+                        item.hasGeizhalsURL = true;
+                    }
+                    catch (Exception)
+                    {
+                        item.comparePrice = 0;
+                        item.hasGeizhalsURL = false;
+                    }
                 }
-                catch(Exception)
+
+                if (!onlyUpdateEmpty)
                 {
-                    item.comparePrice = 0;
+                    try
+                    {
+                        document = new HtmlAgilityPack.HtmlDocument();
+                        document = webPage.Load(item.compareURL);
+                        retValPrice = document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", "");
+                        item.comparePrice = Math.Round(double.Parse(retValPrice), 2);
+                        item.hasGeizhalsURL = true;
+                    }
+                    catch (Exception)
+                    {
+                        item.comparePrice = 0;
+                        item.hasGeizhalsURL = false;
+                    }
                 }
 
             }
@@ -230,11 +440,11 @@ namespace PreisVergleich.ViewModel
                     DialogResult dialogResult = System.Windows.Forms.MessageBox.Show("Möchten sie alle Artikeldaten neuladen?", "Hinweis!", MessageBoxButtons.YesNo);
                     if (dialogResult == DialogResult.Yes)
                     {
-                        Task.Run(() => LoadGridItems(true));
+                        Task.Run(() => LoadGridItems(true, false));
                     }
                     else if (dialogResult == DialogResult.No)
                     {
-                        Task.Run(() => LoadGridItems(false));
+                        Task.Run(() => LoadGridItems(false, false));
                     }
                 }
             }
@@ -262,7 +472,17 @@ namespace PreisVergleich.ViewModel
 
         private void UpdateGridCommand(object context)
         {
-            Task.Run(() => LoadGridItems(true));
+            Task.Run(() => LoadGridItems(true, false));
+        }
+
+        public ICommand UpdateGridEmpty
+        {
+            get { return new DelegateCommand<object>(UpdateGridEmptyCommand); }
+        }
+
+        private void UpdateGridEmptyCommand(object context)
+        {
+            Task.Run(() => LoadGridItems(true, true));
         }
 
         public ICommand UpdateGridOnly
@@ -272,7 +492,7 @@ namespace PreisVergleich.ViewModel
 
         private void UpdateGridOnlyCommand(object context)
         {
-            Task.Run(() => LoadGridItems(false));
+            Task.Run(() => LoadGridItems(false, false));
         }
 
         public ICommand DeleteItem
@@ -287,7 +507,7 @@ namespace PreisVergleich.ViewModel
                 return;
             }
             sQLiteHelper.DeleteItem(selectedItem);
-            LoadGridItems(false);
+            LoadGridItems(false, false);
         }
 
         public ICommand DeleteDB
@@ -297,8 +517,13 @@ namespace PreisVergleich.ViewModel
 
         private void DeleteDBCommand(object context)
         {
+            if (System.Windows.MessageBox.Show("Möchten sie wirklich die Datenbank löschen?", "Sicherheitsfrage", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+            {
+                return;
+            }
+
             sQLiteHelper.DeleteDB();
-            LoadGridItems(false);
+            LoadGridItems(false, false);
         }
 
         public ICommand OpenHWLink
@@ -334,7 +559,7 @@ namespace PreisVergleich.ViewModel
             get { return new DelegateCommand<object>(ImportXMLCommand); }
         }
 
-        private  void ImportXMLCommand(object context)
+        private void ImportXMLCommand(object context)
         {
             try
             {
@@ -354,9 +579,8 @@ namespace PreisVergleich.ViewModel
                 var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(xmlStr);
 
-                 Task.Run(() => LoadXMLintoSQLite(xmlDoc, useGeizhals));
+                Task.Run(() => LoadXMLintoSQLite(xmlDoc, useGeizhals));
 
-              
             }
             catch (Exception ex)
             {
@@ -369,6 +593,10 @@ namespace PreisVergleich.ViewModel
             try
             {
                 List<ProduktModell> listXML = new List<ProduktModell>();
+
+                Stopwatch xmlTime = new Stopwatch();
+
+                xmlTime.Start();
 
                 //XML auswerten und antragen
                 XmlNodeList artikelDaten = xmlDoc.SelectNodes(".//item");
@@ -385,6 +613,7 @@ namespace PreisVergleich.ViewModel
                         articleName = artikelDaten[i].ChildNodes[1].InnerText,
                         hardwareRatID = int.Parse(artikelDaten[i].ChildNodes[0].InnerText),
                         gTIN = artikelDaten[i].ChildNodes[11].InnerText,
+                        AddedAt = DateTime.Now,
                     };
 
                     listXML.Add(model);
@@ -417,68 +646,10 @@ namespace PreisVergleich.ViewModel
                         {
                             try
                             {
-                                try
-                                {
-                                    document = new HtmlAgilityPack.HtmlDocument();
-
-                                    //Name parsen, damit er akzeptiert wird
-                                    string searchProduct = row.gTIN.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
-
-                                    document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
-
-                                    if (webPage.ResponseUri.ToString().Contains("?fs="))
-                                    {
-                                        try
-                                        {
-                                            //GeizhalsURL öffnen
-                                            try
-                                            {
-                                                string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
-
-                                                row.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.de/" + foundURL;
-
-                                                document = webPage.Load(row.compareURL);
-
-                                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
-
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                //Suche per Name probieren
-                                                searchProduct = row.articleName.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
-
-                                                document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=&sort=p");
-
-                                                string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
-
-                                                row.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.de/" + foundURL;
-
-                                                document = webPage.Load(row.compareURL);
-
-                                                row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
-
-                                            }
-
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            log.writeLog(LogType.ERROR, $"{MethodBase.GetCurrentMethod().Name}: Kein Artikel gefunden", ex);
-                                            row.compareURL = "Artikel bei Geizhals nicht gefunden";
-                                            row.comparePrice = 0;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        row.compareURL = webPage.ResponseUri.ToString();
-                                        row.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
-
-                                    }
-
-                                }
-                                catch (Exception) 
-                                {
-                                    row.comparePrice = 0;
-                                }
+                                ProduktModell retVal = SearchGeizhalsData(row.gTIN, row.articleName);
+                                row.comparePrice = retVal.comparePrice;
+                                row.compareURL = retVal.compareURL;
+                                row.hasGeizhalsURL = retVal.hasGeizhalsURL;
 
                                 double difference = Math.Round(row.hardwareRatPrice - row.comparePrice, 2);
                                 row.priceDifference = difference;
@@ -496,56 +667,132 @@ namespace PreisVergleich.ViewModel
                                 }
 
                                 //Falls kein Preis bei Geizhals vorhanden
-                                if(row.comparePrice == 0)
+                                if (row.comparePrice == 0)
                                 {
                                     row.State = "günstiger";
                                 }
 
-                                //4 Sekunden warten GitHub Ban zu umgehen
-                                System.Threading.Thread.Sleep(4000);
+                                //1.2 Sekunden warten IP Ban zu umgehen
+                                System.Threading.Thread.Sleep(1200);
                             }
                             catch (Exception)
                             {
-
                             }
                         }
 
-                        if(!produktItems.Any(y => y.hardwareRatID == row.hardwareRatID))
+                        if (!produktItems.Any(y => y.hardwareRatID == row.hardwareRatID))
                         {
-                            row.articleName += " (Neu)";
+                            row.IsNew = true;
+                            row.AddedAt = DateTime.Now;
                             sQLiteHelper.InsertItem(row);
                             articleAdded++;
 
                             await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                statusValue = $"Übernehme Artikel {articleAdded} von {articleMax}";
+                                statusValue = $"Übernehme Artikel {articleAdded} von {articleMax} ({Math.Round(((double)articleAdded / articleMax * 100), 0)}%)";
                             }));
                         }
                         else
                         {
                             //Artikel nur updaten
+                            row.IsNew = false;
                             sQLiteHelper.UpdateItemXML(row);
 
                             await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                             {
-                                statusValue = $"Update Artikel {row.hardwareRatID}, da er bereits vorhanden ist!";
+                                statusValue = $"Update Artikel HardwareRat ID {row.hardwareRatID}, da er bereits vorhanden ist!";
                             }));
                         }
 
                     }
                 }
+                xmlTime.Stop();
+                log.writeLog(LogType.ERROR, $"XML Abruf hat {xmlTime.Elapsed.ToString("hh")}h {xmlTime.Elapsed.ToString("mm")}m {xmlTime.Elapsed.ToString("ss")}s {xmlTime.Elapsed.ToString("ff")}ms gedauert.");
+
                 await MainDispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
-                    statusValue = $"{articleAdded} / {maxCount} Artikel übernommen";
+                    statusValue = $"{articleAdded} / {maxCount} Artikel übernommen ({Math.Round(((double)articleAdded / articleMax * 100), 0)}%)";
                 }));
-                LoadGridItems(false);
+                LoadGridItems(false, false);
             }
             catch (Exception)
             {
 
             }
+        }
 
 
+        public ProduktModell SearchGeizhalsData(string gTIN, string productName)
+        {
+            ProduktModell retVal = new ProduktModell();
+
+            try
+            {
+                HtmlWeb webPage = new HtmlWeb();
+                HtmlAgilityPack.HtmlDocument document = new HtmlAgilityPack.HtmlDocument();
+
+                //Name parsen, damit er akzeptiert wird
+                string searchProduct = string.IsNullOrEmpty(gTIN) ? "" : gTIN.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
+
+                document = webPage.Load($"https://geizhals.eu/?fs={searchProduct}&hloc=at&in=");
+
+                if (webPage.ResponseUri.ToString().Contains("?fs=") || webPage.ResponseUri.ToString().Contains("geizhals"))
+                {
+                    try
+                    {
+                        //GeizhalsURL öffnen
+                        try
+                        {
+                            string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                            retVal.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//a[@class='listview__price-link ']//span[@class='price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                            retVal.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.eu/" + foundURL;
+
+                            //document = webPage.Load(retVal.compareURL);
+                            //retVal.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                            retVal.hasGeizhalsURL = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            log.writeLog(LogType.ERROR, $"{MethodBase.GetCurrentMethod().Name}: Fehler beim Laden mit GTIN {gTIN}", ex);
+
+                            //Suche per Name probieren
+                            searchProduct = productName.Replace(" ", "+").Replace(",", "%2C").Replace("/EU", "");
+
+                            document = webPage.Load($"https://geizhals.eu/?fs={searchProduct}&hloc=at&in=&sort=p");
+                            
+                            string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                            retVal.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//a[@class='listview__price-link ']//span[@class='price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+
+                            retVal.compareURL = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.eu/" + foundURL;
+
+                            //document = webPage.Load(retVal.compareURL);
+                            //retVal.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                            retVal.hasGeizhalsURL = true;
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        log.writeLog(LogType.ERROR, $"{MethodBase.GetCurrentMethod().Name}: Kein Artikel gefunden zu {gTIN} und {productName}", ex);
+                        retVal.compareURL = "Artikel bei Geizhals nicht gefunden";
+                        retVal.hasGeizhalsURL = false;
+                        retVal.comparePrice = 0;
+                    }
+                }
+                else
+                {
+                    retVal.compareURL = webPage.ResponseUri.ToString();
+                    retVal.comparePrice = double.Parse(document.DocumentNode.SelectSingleNode("//span[@class='variant__header__pricehistory__pricerange']//strong//span[@class='gh_price']").InnerText.Replace("€ ", "").Replace("&euro; ", ""));
+                    retVal.hasGeizhalsURL = true;
+                }
+
+            }
+            catch (Exception)
+            {
+                retVal.comparePrice = 0;
+            }
+
+            return retVal;
         }
 
         #endregion

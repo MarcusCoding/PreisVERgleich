@@ -1,24 +1,32 @@
-﻿<Window x:Class="PreisVergleich.Views.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PreisVergleich"
-        mc:Ignorable="d"
-        xmlns:converter="clr-namespace:PreisVergleich.Converter"
-        Title="PreisVERgleich" Height="650" Width="800">
-    
+﻿<Window
+    x:Class="PreisVergleich.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:PreisVergleich.Converter"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:fluent="urn:fluent-ribbon"
+    xmlns:local="clr-namespace:PreisVergleich"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="PreisVERgleich"
+    Width="800"
+    Height="650"
+    mc:Ignorable="d">
+
     <Window.Resources>
-        <converter:NumberToCurrencyConverter x:Key="currencyConverter"/>
-        <converter:ColorConverter x:Key="colorConverter"/>
+        <converter:NumberToCurrencyConverter x:Key="currencyConverter" />
+        <converter:HasGZUrlToImage x:Key="hasGZUrlConverter" />
+        <converter:IsNewToImage x:Key="NewToImageConverter" />
+        <converter:ColorConverter x:Key="colorConverter" />
+        <converter:SortBoolToImage x:Key="SortBoolConverter" />
+
         <Style TargetType="{x:Type DataGrid}">
-            <Setter Property="AlternationCount" Value="2"/>
-            <Setter Property="AlternatingRowBackground" Value="#E8EAE8"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="AlternationCount" Value="2" />
+            <Setter Property="AlternatingRowBackground" Value="#E8EAE8" />
+            <Setter Property="GridLinesVisibility" Value="None" />
         </Style>
         <Style TargetType="{x:Type DataGridRow}">
-            <Setter Property="Height" Value="25"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Height" Value="25" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
         <Style TargetType="DataGridCell">
             <Style.Setters>
@@ -30,117 +38,472 @@
 
     <Grid Background="#FFE5E5E5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="0.5*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="25" />
         </Grid.RowDefinitions>
-        <DataGrid Grid.Row="0" MinRowHeight="32" HorizontalAlignment="Stretch" ItemsSource="{Binding produktItems}" SelectedItem="{Binding selectedItem}" AutoGenerateColumns="False" IsReadOnly="True" Grid.ColumnSpan="2">
+
+        <fluent:Ribbon
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            Background="Transparent"
+            SelectedTabIndex="{Binding selectedIndex, Mode=TwoWay}">
+            <fluent:RibbonTabItem
+                ActiveTabBackground="#95d5b2"
+                Header="Allgemein"
+                KeyTip="H">
+                <fluent:RibbonGroupBox x:Name="ClipboardGroup" Header="Aktionen">
+                    <fluent:Button
+                        Command="{Binding AddValue}"
+                        Header="Hinzufügen"
+                        LargeIcon="/PreisVergleich;component/Resources/add.png" />
+                    <fluent:Button
+                        Command="{Binding UpdateGridOnly}"
+                        Header="Aktualisieren (ohne HTMLAbruf)"
+                        LargeIcon="/PreisVergleich;component/Resources/reload_offline.png" />
+                    <fluent:Button
+                        Command="{Binding UpdateGrid}"
+                        Header="Aktualisieren"
+                        LargeIcon="/PreisVergleich;component/Resources/reload.png" />
+                    <fluent:Button
+                        Command="{Binding UpdateGridEmpty}"
+                        Header="Aktualisieren (nur nicht gefundene)"
+                        LargeIcon="/PreisVergleich;component/Resources/reload.png" />
+                    <fluent:Button
+                        Command="{Binding ImportXML}"
+                        Header="Import XML"
+                        LargeIcon="/PreisVergleich;component/Resources/import.png" />
+                    <fluent:Button
+                        Command="{Binding DeleteDB}"
+                        Header="Datenbank löschen"
+                        LargeIcon="/PreisVergleich;component/Resources/close.png" />
+                </fluent:RibbonGroupBox>
+
+                <fluent:RibbonGroupBox x:Name="SortingGroup" Header="Sortieren nach">
+                    <fluent:Button
+                        Command="{Binding SortByGZURL}"
+                        Header="nach GeizhalsURL vorhanden"
+                        LargeIcon="{Binding SortedByGZ, Converter={StaticResource SortBoolConverter}, ConverterParameter=geizhals}" />
+                    <fluent:Button
+                        Command="{Binding SortByDate}"
+                        Header="nach Datum"
+                        LargeIcon="{Binding SortedByDate, Converter={StaticResource SortBoolConverter}, ConverterParameter=date}" />
+                    <fluent:Button
+                        Command="{Binding SortByState}"
+                        Header="nach Statuswert"
+                        LargeIcon="{Binding SortedByState, Converter={StaticResource SortBoolConverter}, ConverterParameter=state}" />
+                    <fluent:Button
+                        Command="{Binding SortByDifference}"
+                        Header="nach Differenz"
+                        LargeIcon="{Binding SortedByPrice, Converter={StaticResource SortBoolConverter}, ConverterParameter=price}" />
+                    <fluent:Button
+                        Command="{Binding DeleteSorting}"
+                        Header="Entfernen"
+                        LargeIcon="/PreisVergleich;component/Resources/filtering/remove_filter_new.png" />
+                </fluent:RibbonGroupBox>
+
+                <fluent:RibbonGroupBox x:Name="Grouping" Header="Gruppierung">
+                    <fluent:Button
+                        Command="{Binding StateGrouping}"
+                        Header="nach Statuswert"
+                        LargeIcon="/PreisVergleich;component/Resources/state.png" />
+                    <fluent:Button
+                        Command="{Binding HasGZUrlGrouping}"
+                        Header="nach GeizhalsURL vorhanden"
+                        LargeIcon="/PreisVergleich;component/Resources/geizhals.png" />
+                    <fluent:Button
+                        Command="{Binding DeleteGrouping}"
+                        Header="Entfernen"
+                        LargeIcon="/PreisVergleich;component/Resources/trashcan.png" />
+                </fluent:RibbonGroupBox>
+
+            </fluent:RibbonTabItem>
+
+        </fluent:Ribbon>
+
+        <DataGrid
+            Grid.Row="1"
+            Grid.Column="0"
+            HorizontalAlignment="Stretch"
+            AutoGenerateColumns="False"
+            IsReadOnly="True"
+            ItemsSource="{Binding productGrid}"
+            MinRowHeight="32"
+            SelectedItem="{Binding selectedItem}">
+
+            <DataGrid.GroupStyle>
+                <!--  Style for groups at top level.  -->
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Margin" Value="0,0,0,5" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander
+                                            Background="#FFa5a8ad"
+                                            BorderThickness="1,1,1,5"
+                                            IsExpanded="True">
+                                            <Expander.Header>
+                                                <DockPanel>
+                                                    <TextBlock
+                                                        Width="150"
+                                                        Margin="5,0,0,0"
+                                                        FontWeight="Bold"
+                                                        Foreground="White"
+                                                        Text="{Binding Path=Name}" />
+                                                    <TextBlock
+                                                        FontWeight="Bold"
+                                                        Foreground="White"
+                                                        Text="{Binding Path=ItemCount}" />
+                                                </DockPanel>
+                                            </Expander.Header>
+                                            <Expander.Content>
+                                                <ItemsPresenter />
+                                            </Expander.Content>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <DockPanel Background="#FFc5c7c9">
+                                <TextBlock
+                                    Width="100"
+                                    Margin="30,0,0,0"
+                                    Foreground="White"
+                                    Text="{Binding Path=Name}" />
+                                <TextBlock Foreground="White" Text="{Binding Path=ItemCount}" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Produktnummer HardwareRat" Binding="{Binding hardwareRatID}"  />
-                <DataGridTextColumn Header="Produktname HardwareRat" Binding="{Binding articleName}"  />
-                <DataGridTemplateColumn Header="Produktbild">
+                <DataGridTextColumn Binding="{Binding hardwareRatID}" Header="Produktnummer HardwareRat" />
+
+                <DataGridTemplateColumn Header="Produktname HardwareRat">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Image Source="{Binding articlePicture}" Width="24" Height="24" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="1" Text="{Binding articleName}" />
+                                <Image
+                                    Grid.Column="0"
+                                    Width="24"
+                                    Height="16"
+                                    Source="{Binding IsNew, Converter={StaticResource NewToImageConverter}}" />
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Preis HardwareRat" Binding="{Binding hardwareRatPrice, Converter={StaticResource currencyConverter}}"/>
-                <DataGridTextColumn Header="Preis Preisvergleich" Binding="{Binding comparePrice, Converter={StaticResource currencyConverter}}" />
-                <DataGridTextColumn Header="Statuswert" Binding="{Binding State}">
+
+                <DataGridTemplateColumn Header="Produktbild">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image
+                                Width="24"
+                                Height="24"
+                                Source="{Binding articlePicture}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="GZH">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="{Binding hasGeizhalsURL, Converter={StaticResource hasGZUrlConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Binding="{Binding hardwareRatPrice, Converter={StaticResource currencyConverter}}" Header="Preis HardwareRat" />
+                <DataGridTextColumn Binding="{Binding comparePrice, Converter={StaticResource currencyConverter}}" Header="Preis Preisvergleich" />
+                <DataGridTextColumn Binding="{Binding State}" Header="Statuswert">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="{x:Type TextBlock}">
                             <Setter Property="Background">
                                 <Setter.Value>
-                                    <Binding Converter="{StaticResource colorConverter}" Path="State"/>
+                                    <Binding Converter="{StaticResource colorConverter}" Path="State" />
                                 </Setter.Value>
                             </Setter>
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Differenz" Binding="{Binding priceDifference, Converter={StaticResource currencyConverter}}" />
-                <DataGridTextColumn Header="Vergleichsseite" Binding="{Binding compareSiteType}" />
-                <DataGridTextColumn Header="URL HardwareRat" Binding="{Binding hardwareRatURL}" />
-                <DataGridTextColumn Header="URL Preisvergleich" Binding="{Binding compareURL}" />
+                <DataGridTextColumn Binding="{Binding priceDifference, Converter={StaticResource currencyConverter}}" Header="Differenz" />
+                <DataGridTextColumn Binding="{Binding compareSiteType}" Header="Vergleichsseite" />
+                <DataGridTextColumn Binding="{Binding hardwareRatURL}" Header="URL HardwareRat" />
+                <DataGridTextColumn Binding="{Binding compareURL}" Header="URL Preisvergleich" />
+                <DataGridTextColumn Binding="{Binding AddedAt, StringFormat=\{dd.MM.yyyy\}}" Header="Hinzugefügt am" />
 
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="HardwareRat URL aufrufen" Command="{Binding OpenHWLink}"  >
+                    <MenuItem Command="{Binding OpenHWLink}" Header="HardwareRat URL aufrufen">
                         <MenuItem.Icon>
-                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/hw_logo.png" />
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="/PreisVergleich;component/Resources/hw_logo.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Geizhals URL aufrufen" Command="{Binding OpenCompareLink}" >
+                    <MenuItem Command="{Binding OpenCompareLink}" Header="Geizhals URL aufrufen">
                         <MenuItem.Icon>
-                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/geizhals.png" />
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="/PreisVergleich;component/Resources/geizhals.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Bearbeiten" Command="{Binding UpdateValue}" >
+                    <MenuItem Command="{Binding UpdateValue}" Header="Bearbeiten">
                         <MenuItem.Icon>
-                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/edit.png" />
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="/PreisVergleich;component/Resources/edit.png" />
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Loeschen" Command="{Binding DeleteItem}" >
+                    <MenuItem Command="{Binding DeleteItem}" Header="Loeschen">
                         <MenuItem.Icon>
-                            <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png" />
+                            <Image
+                                Width="16"
+                                Height="16"
+                                Source="/PreisVergleich;component/Resources/close.png" />
                         </MenuItem.Icon>
                     </MenuItem>
                 </ContextMenu>
             </DataGrid.ContextMenu>
         </DataGrid>
-        <Button Grid.Row="1" Command="{Binding AddValue}" >
-            <StackPanel Orientation="Horizontal">
-                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/add.png"/>
-                <Label Padding="4">Hinzufuegen</Label>
-            </StackPanel>
-        </Button>
-        <Button Grid.Row="2" Command="{Binding UpdateGridOnly}" >
-            <StackPanel Orientation="Horizontal">
-                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload_offline.png"/>
-                <Label Padding="4">Aktualisieren (ohne HTMLAbruf)</Label>
-            </StackPanel>
-        </Button>
-        <Button Grid.Row="3" Command="{Binding UpdateGrid}" >
-            <StackPanel Orientation="Horizontal">
-                <Image Width="16" Height="16" Source="/PreisVergleich;component/Resources/reload.png"/>
-                <Label Padding="4">Aktualisieren</Label>
-            </StackPanel>
-        </Button>
-        <Button Grid.Row="4" Command="{Binding ImportXML}" >
-            <StackPanel Orientation="Horizontal">
-                <Image Margin="2" Width="16" Height="16" Source="/PreisVergleich;component/Resources/import.png"/>
-                <Label Padding="4">Import XML</Label>
-            </StackPanel>
-        </Button>
-        <Button Grid.Row="5" Command="{Binding DeleteDB}" >
-            <StackPanel Orientation="Horizontal">
-                <Image Margin="2" Width="16" Height="16" Source="/PreisVergleich;component/Resources/close.png"/>
-                <Label Padding="4">Datenbank leeren</Label>
-            </StackPanel>
-        </Button>
-        <StatusBar Grid.Row="6">
-            
-            <StatusBarItem>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="250"/>
-                        <ColumnDefinition Width="250"/>
-                    </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="{Binding statusValue, Mode=TwoWay}" />
-                    <TextBlock Grid.Column="1" Text="{Binding rowsLoaded, Mode=TwoWay}" />
-                    
-                </Grid>
-            </StatusBarItem>
-        </StatusBar>
+        <Grid
+            Grid.Row="1"
+            Grid.Column="1"
+            Background="White">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="128" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="40" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="20" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="20" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="30" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="35" />
+            </Grid.RowDefinitions>
+
+            <Image
+                Grid.Row="0"
+                Grid.ColumnSpan="2"
+                Margin="5"
+                Source="{Binding selectedItem.articlePicture}" />
+
+            <Grid Grid.Row="1" Grid.ColumnSpan="2">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Image
+                    Grid.Column="0"
+                    Width="24"
+                    Height="16"
+                    Margin="2"
+                    Source="{Binding selectedItem.IsNew, Converter={StaticResource NewToImageConverter}}" />
+
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="7"
+                    FontSize="13"
+                    FontWeight="Bold"
+                    Text="{Binding selectedItem.articleName}"
+                    TextWrapping="Wrap" />
+
+
+            </Grid>
+
+            <StackPanel
+                Grid.Row="2"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal">
+                <Label Content="Preis HardwareRat:" />
+                <TextBox
+                    Height="20"
+                    MinWidth="70"
+                    Margin="0,0,0,10"
+                    IsReadOnly="True"
+                    Text="{Binding selectedItem.hardwareRatPrice, Converter={StaticResource currencyConverter}}" />
+
+                <Label Content="Preis Geizhals:" />
+                <TextBox
+                    Height="20"
+                    MinWidth="70"
+                    Margin="0,0,0,10"
+                    IsReadOnly="True"
+                    Text="{Binding selectedItem.comparePrice, Converter={StaticResource currencyConverter}}" />
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="3"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal">
+                <Label Content="Statuswert:" />
+                <TextBox
+                    Height="20"
+                    MinWidth="100"
+                    Margin="0,0,0,10"
+                    Text="{Binding selectedItem.State}">
+                    <TextBox.Style>
+                        <Style TargetType="{x:Type TextBox}">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <Binding Converter="{StaticResource colorConverter}" Path="selectedItem.State" />
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+
+                <Label Content="Differenz:" />
+                <TextBox
+                    Height="20"
+                    MinWidth="70"
+                    Margin="0,0,0,10"
+                    Text="{Binding selectedItem.priceDifference, Converter={StaticResource currencyConverter}}" />
+            </StackPanel>
+
+            <Label
+                Grid.Row="4"
+                Grid.ColumnSpan="2"
+                Content="URL HardwareRat:" />
+            <TextBox
+                Grid.Row="5"
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                IsReadOnly="True"
+                IsTabStop="True"
+                Text="{Binding selectedItem.hardwareRatURL}"
+                TextWrapping="Wrap" />
+
+            <Label
+                Grid.Row="7"
+                Grid.ColumnSpan="2"
+                Content="URL Geizhals:" />
+            <TextBox
+                Grid.Row="8"
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                IsReadOnly="True"
+                IsTabStop="True"
+                Text="{Binding selectedItem.compareURL}"
+                TextWrapping="Wrap" />
+
+            <Label
+                Grid.Row="10"
+                Grid.ColumnSpan="2"
+                Content="GTIN:" />
+            <TextBox
+                Grid.Row="11"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                IsReadOnly="True"
+                Text="{Binding selectedItem.gTIN}" />
+
+            <Button
+                Grid.Row="13"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                Command="{Binding OpenHWLink}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="16"
+                        Height="16"
+                        Source="/PreisVergleich;component/Resources/hw_logo.png" />
+                    <Label Padding="4">HardwareRat URL aufrufen</Label>
+                </StackPanel>
+            </Button>
+
+            <Button
+                Grid.Row="14"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                Command="{Binding OpenCompareLink}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="16"
+                        Height="16"
+                        Source="/PreisVergleich;component/Resources/geizhals.png" />
+                    <Label Padding="4">Geizhals URL aufrufen</Label>
+                </StackPanel>
+            </Button>
+
+            <Button
+                Grid.Row="15"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                Command="{Binding UpdateValue}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="16"
+                        Height="16"
+                        Source="/PreisVergleich;component/Resources/edit.png" />
+                    <Label Padding="4">Bearbeiten</Label>
+                </StackPanel>
+            </Button>
+
+            <Button
+                Grid.Row="16"
+                Grid.ColumnSpan="2"
+                Margin="2"
+                Command="{Binding DeleteItem}">
+                <StackPanel Orientation="Horizontal">
+                    <Image
+                        Width="16"
+                        Height="16"
+                        Source="/PreisVergleich;component/Resources/close.png" />
+                    <Label Padding="4">Löschen</Label>
+                </StackPanel>
+            </Button>
+
+        </Grid>
+
+        <fluent:StatusBar Grid.Row="2" Grid.ColumnSpan="2">
+            <fluent:StatusBarItem Margin="3" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding statusValue, Mode=TwoWay}" />
+            </fluent:StatusBarItem>
+            <fluent:StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding rowsLoaded, Mode=TwoWay}" />
+            </fluent:StatusBarItem>
+        </fluent:StatusBar>
     </Grid>
 
 </Window>
