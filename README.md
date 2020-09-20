@@ -7,7 +7,7 @@ Es wird eine Differenz zwischen den beiden Preisen gebildet und dann visuell dar
 
 **Übersicht**
 
-![Hauptfenster](https://github.com/MarcusCoding/PreisVERgleich/blob/master/PreisVergleich/Resources/mainimg.png)
+![Hauptfenster](https://github.com/MarcusCoding/PreisVERgleich/blob/master/PreisVergleich/Resources/screen_newui.png)
 
 **Satz einfügen**
 
