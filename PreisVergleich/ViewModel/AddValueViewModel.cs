@@ -274,11 +274,11 @@ namespace PreisVergleich.ViewModel
                         //Name parsen, damit er akzeptiert wird
                         string searchProduct = hwProductName.Replace(" ", "+").Replace(",", "%2C");
 
-                        document = webPage.Load($"https://geizhals.de/?fs={searchProduct}&hloc=at&in=");
+                        document = webPage.Load($"https://geizhals.eu/?fs={searchProduct}&hloc=at&in=");
 
                         //GeizhalsURL Feld befüllen
-                        urlCompareSite = "https://geizhals.de/" + document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
-
+                        string foundURL = document.DocumentNode.SelectSingleNode("//a[@class='listview__name-link']").Attributes["href"].Value;
+                        urlCompareSite = foundURL.Contains("geizhals.eu") ? "https:" + foundURL : "https://geizhals.eu/" + foundURL;
 
                     }
                     catch(Exception)

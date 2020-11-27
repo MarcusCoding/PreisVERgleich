@@ -691,7 +691,7 @@ namespace PreisVergleich.ViewModel
                                 }
 
                                 //1.2 Sekunden warten IP Ban zu umgehen
-                                System.Threading.Thread.Sleep(1200);
+                                System.Threading.Thread.Sleep(1800);
                             }
                             catch (Exception)
                             {
